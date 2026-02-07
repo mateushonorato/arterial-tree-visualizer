@@ -2,6 +2,11 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 #include "VtkReader.hpp"
+#include "shader.hpp"
+#include "TreeRenderer.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 // Callback: Adjust viewport on window resize
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -22,6 +27,11 @@ int main() {
     } else {
         std::cerr << "Failed to load VTK file." << std::endl;
     }
+
+    // Matrices (declare here, initialize after GLAD)
+    glm::mat4 view, projection, model;
+    Shader* shader = nullptr;
+    TreeRenderer* renderer = nullptr;
 
     // Initialize GLFW
     if (!glfwInit()) {
@@ -54,16 +64,27 @@ int main() {
     std::cout << "GL_RENDERER: " << glGetString(GL_RENDERER) << std::endl;
     std::cout << "GL_VERSION:  " << glGetString(GL_VERSION) << std::endl;
 
+
+    // Setup matrices and OpenGL objects after GLAD
+    view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -0.2f));
+    projection = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.01f, 10.0f);
+    model = glm::mat4(1.0f);
+    shader = new Shader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
+    renderer = new TreeRenderer();
+    renderer->init(tree);
+
     // Render loop
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
-
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
+        renderer->draw(*shader, view, projection, model);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    delete shader;
+    delete renderer;
 
     glfwDestroyWindow(window);
     glfwTerminate();
