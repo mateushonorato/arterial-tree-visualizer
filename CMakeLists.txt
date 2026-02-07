@@ -12,6 +12,8 @@ find_package(glfw3 3.3 REQUIRED)
 find_package(glm REQUIRED)
 
 include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(${CMAKE_SOURCE_DIR}/lib/imgui)
+include_directories(${CMAKE_SOURCE_DIR}/lib/imgui/backends)
 
 set(SOURCES
     src/main.cpp
@@ -19,6 +21,12 @@ set(SOURCES
     src/VtkReader.cpp
     src/shader.cpp
     src/TreeRenderer.cpp
+    lib/imgui/imgui.cpp
+    lib/imgui/imgui_draw.cpp
+    lib/imgui/imgui_tables.cpp
+    lib/imgui/imgui_widgets.cpp
+    lib/imgui/backends/imgui_impl_glfw.cpp
+    lib/imgui/backends/imgui_impl_opengl3.cpp
 )
 
 add_executable(ArterialVis ${SOURCES})
