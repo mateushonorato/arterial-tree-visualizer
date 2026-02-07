@@ -16,6 +16,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 set(SOURCES
     src/main.cpp
     src/glad.c
+    src/VtkReader.cpp
 )
 
 add_executable(ArterialVis ${SOURCES})
