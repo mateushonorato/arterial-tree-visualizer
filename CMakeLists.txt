@@ -17,6 +17,7 @@ set(SOURCES
     src/main.cpp
     src/glad.c
     src/VtkReader.cpp
+    src/shader.cpp
 )
 
 add_executable(ArterialVis ${SOURCES})
