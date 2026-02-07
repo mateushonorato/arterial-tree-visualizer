@@ -1,3 +1,4 @@
+#include "AnimationController.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -84,8 +85,16 @@ int main() {
     renderer = new TreeRenderer();
     renderer->init(tree);
 
+    // Animation controller
+    AnimationController animCtrl;
+    animCtrl.update(0.0f, tree, *renderer);
+
+    double lastTime = glfwGetTime();
     // Render loop
     while (!glfwWindowShouldClose(window)) {
+        double currentTime = glfwGetTime();
+        float deltaTime = static_cast<float>(currentTime - lastTime);
+        lastTime = currentTime;
         processInput(window);
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -95,9 +104,8 @@ int main() {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        ImGui::Begin("Controle de Animação");
-        ImGui::Text("Sistema Pronto!");
-        ImGui::End();
+        animCtrl.update(deltaTime, tree, *renderer);
+        animCtrl.renderGUI(tree, *renderer);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

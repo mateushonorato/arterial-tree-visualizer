@@ -21,6 +21,7 @@ set(SOURCES
     src/VtkReader.cpp
     src/shader.cpp
     src/TreeRenderer.cpp
+    src/AnimationController.cpp
     lib/imgui/imgui.cpp
     lib/imgui/imgui_draw.cpp
     lib/imgui/imgui_tables.cpp
