@@ -3,26 +3,54 @@
 #include <iostream>
 
 AnimationController::AnimationController() {
-    m_isPlaying = true; // Inicia tocando
-    
-    // Escaneia pastas
-    if (std::filesystem::exists(rootPath)) {
-        for (const auto& entry : std::filesystem::directory_iterator(rootPath)) {
+    m_isPlaying = true;
+    setMode2D();
+}
+// --- Mode switching ---
+void AnimationController::setMode2D(ArterialTree* tree, TreeRenderer* renderer) {
+    currentMode = Mode2D;
+    currentRootPath = "../data/TP1_2D/";
+    refreshDatasets(tree, renderer);
+}
+
+void AnimationController::setMode3D(ArterialTree* tree, TreeRenderer* renderer) {
+    currentMode = Mode3D;
+    currentRootPath = "../data/TP2_3D/";
+    refreshDatasets(tree, renderer);
+}
+
+void AnimationController::refreshDatasets(ArterialTree* tree, TreeRenderer* renderer) {
+    availableDatasets.clear();
+    currentPlaylist.clear();
+    currentDatasetIndex = 0;
+    currentFrameIndex = 0;
+    if (std::filesystem::exists(currentRootPath)) {
+        for (const auto& entry : std::filesystem::directory_iterator(currentRootPath)) {
             if (entry.is_directory()) {
                 availableDatasets.push_back(entry.path().filename().string());
             }
         }
     }
-    
-    // Carrega primeira playlist se existir
     if (!availableDatasets.empty()) {
         loadPlaylist(availableDatasets[0]);
+        if (tree && renderer) {
+            loadCurrentFrame(*tree, *renderer);
+        }
+    } else {
+        // Limpa árvore/renderizador se não houver datasets
+        if (tree) {
+            tree->nodes.clear();
+            tree->segments.clear();
+        }
+        if (renderer && tree) {
+            renderer->init(*tree); // Reinitialize with empty tree
+        }
     }
 }
 
 void AnimationController::loadPlaylist(const std::string& folderName) {
     currentPlaylist.clear();
-    std::string folderPath = rootPath + folderName + "/";
+    std::string folderPath = currentRootPath + folderName + "/";
     
     if (std::filesystem::exists(folderPath)) {
         for (const auto& entry : std::filesystem::directory_iterator(folderPath)) {

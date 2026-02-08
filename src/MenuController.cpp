@@ -7,14 +7,26 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
     ImGui::SetNextWindowSize(ImVec2(480, 250), ImGuiCond_FirstUseEver);
     ImGui::Begin("Menu Principal");
 
+
+    // --- 2D/3D Mode Switch ---
+    int mode = (animCtrl.getCurrentMode() == AnimationController::Mode2D) ? 0 : 1;
+    ImGui::Text("Modo de Visualização:");
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Modo 2D", mode == 0)) {
+        if (mode != 0) animCtrl.setMode2D(&tree, &renderer);
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Modo 3D", mode == 1)) {
+        if (mode != 1) animCtrl.setMode3D(&tree, &renderer);
+    }
+    ImGui::Separator();
+
     // 1. Seletor de Dataset
     const std::vector<std::string>& datasets = animCtrl.getAvailableDatasets();
     int currentIdx = animCtrl.getCurrentDatasetIndex();
-    
     // Proteção contra datasets vazios
     const char* previewValue = (datasets.empty() || currentIdx >= datasets.size()) ? 
                                "Nenhum" : datasets[currentIdx].c_str();
-
     ImGui::Text("Dataset:");
     if (ImGui::BeginCombo("##dataset", previewValue)) {
         for (int i = 0; i < (int)datasets.size(); i++) {
