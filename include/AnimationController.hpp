@@ -5,7 +5,7 @@
 #include <filesystem>
 #include "VtkReader.hpp"
 #include "TreeRenderer.hpp"
-#include "imgui.h"
+// Nota: Sem <imgui.h> aqui! Mantendo a lógica pura.
 
 class AnimationController {
 private:
@@ -14,8 +14,10 @@ private:
     std::vector<std::string> currentPlaylist;
     int currentDatasetIndex = 0;
     int currentFrameIndex = 0;
-    bool isPlaying = false;
-    float animationSpeed = 0.1f;
+    
+    // Prefixo m_ para membros privados evita conflitos
+    bool m_isPlaying = true; 
+    float speedMultiplier = 1.0f;
     float timeAccumulator = 0.0f;
 
     void loadPlaylist(const std::string& folderName);
@@ -24,5 +26,18 @@ private:
 public:
     AnimationController();
     void update(float deltaTime, ArterialTree& tree, TreeRenderer& renderer);
-    void renderGUI(ArterialTree& tree, TreeRenderer& renderer);
+
+    // Getters e Setters para a UI (MenuController)
+    const std::vector<std::string>& getAvailableDatasets() const;
+    int getCurrentDatasetIndex() const;
+    void setDatasetIndex(int index, ArterialTree& tree, TreeRenderer& renderer);
+    
+    int getCurrentFrameIndex() const;
+    int getTotalFrames() const;
+    void setFrameIndex(int index, ArterialTree& tree, TreeRenderer& renderer);
+    
+    bool isPlaying() const;
+    void togglePlay();
+    
+    float& getSpeedMultiplierRef();
 };
