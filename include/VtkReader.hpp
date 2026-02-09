@@ -34,8 +34,8 @@ struct ArterialTree {
         if (maxDim < 1e-6f) maxDim = 1.0f;
         // 3. Compute scale factor
         float scaleFactor = 2.0f / maxDim;
-        // 4. Centering
-        glm::vec3 center = (minPos + maxPos) * 0.5f;
+        // 4. Anchor at root node (no jitter)
+        glm::vec3 center = nodes[0].position;
         for (auto& node : nodes) node.position = (node.position - center) * scaleFactor;
         // 5. Find max radius
         float maxRadius = 0.0f;
