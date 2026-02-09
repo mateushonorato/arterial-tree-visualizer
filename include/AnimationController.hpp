@@ -61,6 +61,8 @@ public:
     float lightPos[3] = {10.0f, 10.0f, 10.0f};
     float transparency = 1.0f;
     bool m_visualDirty = true;
+    // UI toggle for showing spheres (joints)
+    bool showSpheres = true;
 
     bool isVisualDirty() const { return m_visualDirty; }
     void resetVisualDirty() { m_visualDirty = false; }

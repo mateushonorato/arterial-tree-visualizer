@@ -141,7 +141,7 @@ int main() {
 
         // Atualiza visualização se necessário
         if (animCtrl.isVisualDirty()) {
-            renderer.init(tree, animCtrl.radiusScale);
+            renderer.init(tree, animCtrl.radiusScale, animCtrl.showSpheres);
             animCtrl.resetVisualDirty();
         }
 
@@ -152,7 +152,6 @@ int main() {
         shader.setMat4("projection", projection);
         shader.setVec3("lightPos", glm::vec3(animCtrl.lightPos[0], animCtrl.lightPos[1], animCtrl.lightPos[2]));
         shader.setVec3("viewPos", camera.getPosition());
-        shader.setVec3("objectColor", glm::vec3(animCtrl.objectColor[0], animCtrl.objectColor[1], animCtrl.objectColor[2]));
         shader.setFloat("alpha", animCtrl.transparency);
 
         renderer.draw(shader, view, projection, model);

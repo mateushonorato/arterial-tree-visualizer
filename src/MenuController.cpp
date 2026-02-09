@@ -66,9 +66,11 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
     ImGui::Text("Ajustes Visuais");
     bool dirty = false;
     dirty |= ImGui::SliderFloat("Escala do Raio", &animCtrl.radiusScale, 0.1f, 5.0f);
-    dirty |= ImGui::ColorEdit3("Cor do Objeto", animCtrl.objectColor);
     dirty |= ImGui::SliderFloat3("Posição da Luz", animCtrl.lightPos, -20.0f, 20.0f);
     dirty |= ImGui::SliderFloat("Transparência", &animCtrl.transparency, 0.0f, 1.0f);
+    if (ImGui::Checkbox("Suavizar Conexões", &animCtrl.showSpheres)) {
+        animCtrl.m_visualDirty = true;
+    }
     if (dirty) animCtrl.m_visualDirty = true;
     ImGui::End();
 }
