@@ -68,6 +68,10 @@ int main() {
     // 2. Inicialização do GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) return -1;
 
+    // Cursor feedback for panning
+    GLFWcursor* handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+    GLFWcursor* arrowCursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+
     // 3. Inicialização do ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -100,6 +104,11 @@ int main() {
 
     // 6. Loop Principal
     while (!glfwWindowShouldClose(window)) {
+                // Auto-reset camera if requested by AnimationController
+                if (animCtrl.shouldResetCamera()) {
+                    camera.reset();
+                    animCtrl.ackCameraReset();
+                }
         double currentTime = glfwGetTime();
         float deltaTime = static_cast<float>(currentTime - lastTime);
         lastTime = currentTime;
@@ -117,9 +126,14 @@ int main() {
         // Atualiza aspect ratio e view/projection
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
+        glViewport(0, 0, width, height); // Fix initial clipping on some systems
         float aspect = (height > 0) ? (float)width / (float)height : 1.0f;
         projection = glm::perspective(glm::radians(45.0f), aspect, 0.001f, 100.0f);
         view = camera.getViewMatrix();
+
+        // Cursor feedback for panning
+        bool isPanning = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+        glfwSetCursor(window, isPanning ? handCursor : arrowCursor);
 
         // Atualiza visualização se necessário
         if (animCtrl.isVisualDirty()) {
@@ -154,6 +168,8 @@ int main() {
     }
 
     // Cleanup
+    glfwDestroyCursor(handCursor);
+    glfwDestroyCursor(arrowCursor);
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

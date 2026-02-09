@@ -8,7 +8,13 @@
 // Nota: Sem <imgui.h> aqui! Mantendo a lógica pura.
 
 class AnimationController {
+    // Camera reset logic
+    bool m_cameraResetRequested = false;
 public:
+        // Camera reset interface
+        bool shouldResetCamera() const { return m_cameraResetRequested; }
+        void ackCameraReset() { m_cameraResetRequested = false; }
+        void requestCameraReset() { m_cameraResetRequested = true; }
     enum Mode {
         Mode2D,
         Mode3D

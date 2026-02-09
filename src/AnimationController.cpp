@@ -14,18 +14,21 @@ AnimationController::AnimationController() {
     transparency = 1.0f;
     m_visualDirty = true;
     setMode2D();
+    requestCameraReset();
 }
 // --- Mode switching ---
 void AnimationController::setMode2D(ArterialTree* tree, TreeRenderer* renderer) {
     currentMode = Mode2D;
     currentRootPath = "../data/TP1_2D/";
     refreshDatasets(tree, renderer);
+    requestCameraReset();
 }
 
 void AnimationController::setMode3D(ArterialTree* tree, TreeRenderer* renderer) {
     currentMode = Mode3D;
     currentRootPath = "../data/TP2_3D/";
     refreshDatasets(tree, renderer);
+    requestCameraReset();
 }
 
 void AnimationController::refreshDatasets(ArterialTree* tree, TreeRenderer* renderer) {
@@ -122,6 +125,7 @@ void AnimationController::setDatasetIndex(int index, ArterialTree& tree, TreeRen
         currentDatasetIndex = index;
         loadPlaylist(availableDatasets[index]);
         loadCurrentFrame(tree, renderer);
+        requestCameraReset();
     }
 }
 
