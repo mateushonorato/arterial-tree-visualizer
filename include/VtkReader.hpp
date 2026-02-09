@@ -14,6 +14,7 @@ struct ArterialSegment {
     int indexA; // start node index
     int indexB; // end node index
     float radius; // from SCALARS
+    glm::vec3 midpoint; // A "assinatura" do segmento
 };
 
 struct ArterialTree {

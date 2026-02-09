@@ -139,5 +139,10 @@ bool VtkReader::load(const std::string& filepath, ArterialTree& outTree) {
     }
     outTree.segments = tempSegments;
     outTree.normalize();
+    for (auto& seg : outTree.segments) {
+        glm::vec3 pA = outTree.nodes[seg.indexA].position;
+        glm::vec3 pB = outTree.nodes[seg.indexB].position;
+        seg.midpoint = (pA + pB) / 2.0f;
+    }
     return true;
 }

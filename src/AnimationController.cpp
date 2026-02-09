@@ -85,6 +85,19 @@ void AnimationController::loadCurrentFrame(ArterialTree& tree, TreeRenderer& ren
              std::cerr << "Failed to load frame: " << currentPlaylist[currentFrameIndex] << std::endl;
         } else {
             renderer.init(tree, radiusScale);
+            // Restore persistent selection if lastSelectedMidpoint is valid
+            if (selectedSegmentIndex != -1 && tree.segments.size() > 0) {
+                float minDist = std::numeric_limits<float>::max();
+                int bestIdx = -1;
+                for (size_t i = 0; i < tree.segments.size(); ++i) {
+                    float dist = glm::distance(tree.segments[i].midpoint, lastSelectedMidpoint);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        bestIdx = static_cast<int>(i);
+                    }
+                }
+                selectedSegmentIndex = bestIdx;
+            }
         }
     }
 }

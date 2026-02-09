@@ -92,7 +92,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             }
         }
         
-        animCtrl.selectSegment(closestIdx);
+        animCtrl.selectSegment(closestIdx, tree);
     }
 
     camera.processMouseButton(button, action, xpos, ypos);

@@ -15,7 +15,12 @@ class AnimationController {
 public:
             // --- Picking/Selection ---
             // Set selected segment index (-1 for none)
-            void selectSegment(int index) { selectedSegmentIndex = index; }
+            void selectSegment(int index, const ArterialTree& tree) {
+                selectedSegmentIndex = index;
+                if (index >= 0 && index < (int)tree.segments.size()) {
+                    lastSelectedMidpoint = tree.segments[index].midpoint;
+                }
+            }
             // Get selected segment index (-1 for none)
             int getSelectedSegment() const { return selectedSegmentIndex; }
         // Camera reset interface
@@ -37,6 +42,7 @@ private:
     float speedMultiplier = 1.0f;
     float timeAccumulator = 0.0f;
     Mode currentMode = Mode2D;
+    glm::vec3 lastSelectedMidpoint = glm::vec3(0.0f);
 
     void loadPlaylist(const std::string& folderName);
     void loadCurrentFrame(ArterialTree& tree, TreeRenderer& renderer);

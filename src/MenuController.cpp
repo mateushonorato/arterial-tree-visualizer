@@ -92,7 +92,6 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
         float length = glm::length(nodeA.position - nodeB.position);
         ImGui::SetNextWindowSize(ImVec2(350, 180), ImGuiCond_Appearing);
         ImGui::Begin("Propriedades da Seleção", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
-        ImGui::Text("ID do Segmento: %d", selIdx);
         ImGui::Text("Raio: %.3f mm", seg.radius);
         ImGui::Text("Comprimento: %.3f mm", length);
         ImGui::Separator();
