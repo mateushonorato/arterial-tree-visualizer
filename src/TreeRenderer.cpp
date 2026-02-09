@@ -1,9 +1,11 @@
+#include "ClippingUtils.hpp"
 // Modern OpenGL line rendering for Wireframe mode
 #include "TreeRenderer.hpp"
 #include <vector>
 #include <glm/glm.hpp>
 
-void TreeRenderer::initWireframe(const std::vector<ArterialNode>& nodes, const std::vector<ArterialSegment>& segments) {
+void TreeRenderer::initWireframe(const std::vector<ArterialNode>& nodes, const std::vector<ArterialSegment>& segments,
+                                 bool clipEnabled, glm::vec3 clipMin, glm::vec3 clipMax) {
     // Clean up previous buffer if needed
     if (wireframeBuf.vbo) glDeleteBuffers(1, &wireframeBuf.vbo);
     if (wireframeBuf.vao) glDeleteVertexArrays(1, &wireframeBuf.vao);
@@ -29,14 +31,17 @@ void TreeRenderer::initWireframe(const std::vector<ArterialNode>& nodes, const s
     data.reserve(segments.size() * 2);
     for (size_t i = 0; i < segments.size(); ++i) {
         const auto& seg = segments[i];
-        // Node A
-        const glm::vec3& a = nodes[seg.indexA].position;
+        glm::vec3 tempA = nodes[seg.indexA].position;
+        glm::vec3 tempB = nodes[seg.indexB].position;
+        bool keep = true;
+        if (clipEnabled) {
+            keep = ClippingUtils::clipSegment(tempA, tempB, clipMin, clipMax);
+        }
+        if (!keep) continue;
         glm::vec3 colorA = getHeatMapColor(seg.radius, minRadius, maxRadius);
-        data.push_back(WireframeVertex{a, colorA, static_cast<int>(i)});
-        // Node B
-        const glm::vec3& b = nodes[seg.indexB].position;
         glm::vec3 colorB = getHeatMapColor(seg.radius, minRadius, maxRadius);
-        data.push_back(WireframeVertex{b, colorB, static_cast<int>(i)});
+        data.push_back(WireframeVertex{tempA, colorA, static_cast<int>(i)});
+        data.push_back(WireframeVertex{tempB, colorB, static_cast<int>(i)});
     }
     wireframeBuf.vertexCount = data.size();
 
@@ -100,7 +105,8 @@ glm::vec3 TreeRenderer::getHeatMapColor(float value, float minVal, float maxVal)
     }
 }
 
-void TreeRenderer::init(const ArterialTree& tree, float radiusMultiplier, bool showSpheres) {
+void TreeRenderer::init(const ArterialTree& tree, float radiusMultiplier, bool showSpheres,
+                       bool clipEnabled, glm::vec3 clipMin, glm::vec3 clipMax) {
     if (VAO) glDeleteVertexArrays(1, &VAO);
     if (VBO) glDeleteBuffers(1, &VBO);
     if (EBO) glDeleteBuffers(1, &EBO);
@@ -109,7 +115,7 @@ void TreeRenderer::init(const ArterialTree& tree, float radiusMultiplier, bool s
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
 
-    buildMeshes(tree, radiusMultiplier, showSpheres);
+    buildMeshes(tree, radiusMultiplier, showSpheres, clipEnabled, clipMin, clipMax);
 }
 
 void TreeRenderer::generateSphere(const glm::vec3& center, float radius, const glm::vec3& color, int segmentID, std::vector<Vertex>& vertices, std::vector<unsigned int>& indices) {
@@ -193,7 +199,8 @@ void TreeRenderer::generateCylinder(const glm::vec3& a, const glm::vec3& b, floa
     }
 }
 
-void TreeRenderer::buildMeshes(const ArterialTree& tree, float radiusMultiplier, bool showSpheres) {
+void TreeRenderer::buildMeshes(const ArterialTree& tree, float radiusMultiplier, bool showSpheres,
+                              bool clipEnabled, glm::vec3 clipMin, glm::vec3 clipMax) {
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
@@ -217,13 +224,18 @@ void TreeRenderer::buildMeshes(const ArterialTree& tree, float radiusMultiplier,
     // 2. Geometria: CILINDROS (Ramos)
     for (size_t i = 0; i < tree.segments.size(); ++i) {
         const auto& seg = tree.segments[i];
-        glm::vec3 a = tree.nodes[seg.indexA].position;
-        glm::vec3 b = tree.nodes[seg.indexB].position;
+        glm::vec3 tempA = tree.nodes[seg.indexA].position;
+        glm::vec3 tempB = tree.nodes[seg.indexB].position;
+        bool keep = true;
+        if (clipEnabled) {
+            keep = ClippingUtils::clipSegment(tempA, tempB, clipMin, clipMax);
+        }
+        if (!keep) continue;
         float radiusA = glm::max(nodeMaxRadii[seg.indexA] * radiusMultiplier, 0.002f);
         float radiusB = glm::max(nodeMaxRadii[seg.indexB] * radiusMultiplier, 0.002f);
         glm::vec3 colorA = getHeatMapColor(nodeMaxRadii[seg.indexA], minRadius, maxRadius);
         glm::vec3 colorB = getHeatMapColor(nodeMaxRadii[seg.indexB], minRadius, maxRadius);
-        generateCylinder(a, b, radiusA, radiusB, colorA, colorB, static_cast<int>(i), vertices, indices);
+        generateCylinder(tempA, tempB, radiusA, radiusB, colorA, colorB, static_cast<int>(i), vertices, indices);
     }
         
     // 3. Geometria: ESFERAS (Juntas)
@@ -232,6 +244,13 @@ void TreeRenderer::buildMeshes(const ArterialTree& tree, float radiusMultiplier,
         for (size_t i = 0; i < tree.nodes.size(); ++i) {
             if (nodeCounts[i] > 1) {
                 glm::vec3 center = tree.nodes[i].position;
+                if (clipEnabled) {
+                    if (center.x < clipMin.x || center.x > clipMax.x ||
+                        center.y < clipMin.y || center.y > clipMax.y ||
+                        center.z < clipMin.z || center.z > clipMax.z) {
+                        continue;
+                    }
+                }
                 float radius = glm::max(nodeMaxRadii[i] * radiusMultiplier, 0.002f);
                 glm::vec3 color = getHeatMapColor(nodeMaxRadii[i], minRadius, maxRadius);
                 generateSphere(center, radius, color, -1, vertices, indices);

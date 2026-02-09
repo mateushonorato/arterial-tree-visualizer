@@ -7,12 +7,21 @@
 #include "TreeRenderer.hpp"
 // Nota: Sem <imgui.h> aqui! Mantendo a lógica pura.
 
+#include <glm/glm.hpp>
+
+struct ClippingBox {
+    glm::vec3 min = glm::vec3(-2.0f);
+    glm::vec3 max = glm::vec3(2.0f);
+    bool enabled = false;
+};
+
 class AnimationController {
     // Camera reset logic
     bool m_cameraResetRequested = false;
     // Selection state for picking
     int selectedSegmentIndex = -1;
 public:
+    ClippingBox clipping;
             // --- Picking/Selection ---
             // Set selected segment index (-1 for none)
             void selectSegment(int index, const ArterialTree& tree) {

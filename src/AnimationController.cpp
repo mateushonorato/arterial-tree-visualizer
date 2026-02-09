@@ -7,6 +7,10 @@ void AnimationController::setModeWireframe(ArterialTree* tree, TreeRenderer* ren
     currentMode = ModeWireframe;
     this->selectedSegmentIndex = -1;
     currentRootPath = "../data/TP1_2D/";
+    if (tree && renderer) {
+        renderer->initWireframe(tree->nodes, tree->segments,
+            clipping.enabled, clipping.min, clipping.max);
+    }
     refreshDatasets(tree, renderer);
     requestCameraReset();
 }
@@ -14,9 +18,9 @@ void AnimationController::setModeWireframe(ArterialTree* tree, TreeRenderer* ren
 AnimationController::AnimationController() {
     m_isPlaying = true;
     radiusScale = 1.0f;
-    lightPos[0] = -20.0f;
-    lightPos[1] = -20.0f;
-    lightPos[2] = -20.0f;
+    lightPos[0] = 20.0f;
+    lightPos[1] = 20.0f;
+    lightPos[2] = 20.0f;
     transparency = 1.0f;
     m_visualDirty = true;
     showSpheres = true;
@@ -94,9 +98,11 @@ void AnimationController::loadCurrentFrame(ArterialTree& tree, TreeRenderer& ren
             std::cerr << "Failed to load frame: " << currentPlaylist[currentFrameIndex] << std::endl;
         } else {
             if (currentMode == ModeWireframe) {
-                renderer.initWireframe(tree.nodes, tree.segments);
+                renderer.initWireframe(tree.nodes, tree.segments,
+                    clipping.enabled, clipping.min, clipping.max);
             } else {
-                renderer.init(tree, radiusScale);
+                renderer.init(tree, radiusScale, showSpheres,
+                    clipping.enabled, clipping.min, clipping.max);
             }
             // Restore persistent selection if lastSelectedMidpoint is valid
             if (selectedSegmentIndex != -1 && tree.segments.size() > 0) {

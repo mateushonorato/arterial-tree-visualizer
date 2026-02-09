@@ -1,3 +1,4 @@
+#include "ClippingUtils.hpp"
 #include "MenuController.hpp"
 #include "AnimationController.hpp"
 #include "imgui.h"
@@ -71,15 +72,20 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
         for (size_t i = 0; i < tree.segments.size(); ++i) {
             const auto& seg = tree.segments[i];
-
-            glm::vec4 localA = glm::vec4(tree.nodes[seg.indexA].position, 1.0f);
-            glm::vec4 localB = glm::vec4(tree.nodes[seg.indexB].position, 1.0f);
+            glm::vec3 a = tree.nodes[seg.indexA].position;
+            glm::vec3 b = tree.nodes[seg.indexB].position;
+            // Clipping check
+            if (animCtrl.clipping.enabled) {
+                glm::vec3 tempA = a, tempB = b;
+                if (!ClippingUtils::clipSegment(tempA, tempB, animCtrl.clipping.min, animCtrl.clipping.max)) {
+                    continue;
+                }
+            }
+            glm::vec4 localA = glm::vec4(a, 1.0f);
+            glm::vec4 localB = glm::vec4(b, 1.0f);
             glm::vec3 worldA = glm::vec3(model * localA);
             glm::vec3 worldB = glm::vec3(model * localB);
-
-            // Hitbox ajustada para precisão (1.1x)
             float hitRadius = std::max(seg.radius * animCtrl.radiusScale * 1.1f, 0.0001f);
-
             float outDist;
             if (PickingUtils::rayIntersectsSegment(rayOrigin, rayDir, worldA, worldB, hitRadius, outDist)) {
                 if (outDist < closestDist) {
@@ -224,7 +230,19 @@ int main() {
 
         // Atualiza visualização se necessário
         if (animCtrl.isVisualDirty()) {
-            renderer.init(tree, animCtrl.radiusScale, animCtrl.showSpheres);
+            if (animCtrl.getCurrentMode() == AnimationController::ModeWireframe) {
+                renderer.initWireframe(tree.nodes, tree.segments,
+                    animCtrl.clipping.enabled,
+                    animCtrl.clipping.min,
+                    animCtrl.clipping.max);
+            } else {
+                renderer.init(tree,
+                    animCtrl.radiusScale,
+                    animCtrl.showSpheres,
+                    animCtrl.clipping.enabled,
+                    animCtrl.clipping.min,
+                    animCtrl.clipping.max);
+            }
             animCtrl.resetVisualDirty();
         }
 

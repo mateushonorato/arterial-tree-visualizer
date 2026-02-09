@@ -3,7 +3,11 @@
 #include <algorithm>
 #include <cmath>
 
-Camera::Camera() {}
+Camera::Camera() {
+    yaw = 90.0f;
+    pitch = 0.0f;
+    distance = 5.0f;
+}
 
 glm::vec3 Camera::getPosition() const {
     float yawRad = glm::radians(yaw);
@@ -41,7 +45,7 @@ void Camera::processMousePan(float xoffset, float yoffset) {
 void Camera::reset() {
     panOffset = glm::vec3(0.0f);
     distance = 5.0f;
-    yaw = -90.0f;
+    yaw = 90.0f;
     pitch = 0.0f;
 }
 

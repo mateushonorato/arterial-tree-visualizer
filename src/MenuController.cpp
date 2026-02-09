@@ -4,6 +4,39 @@
 #include <string>
 
 void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, TreeRenderer& renderer) {
+    if (ImGui::CollapsingHeader("Ferramenta de Corte (Slicing)", ImGuiTreeNodeFlags_DefaultOpen)) {
+        bool clippingChanged = false;
+        clippingChanged |= ImGui::Checkbox("Ativar Corte", &animCtrl.clipping.enabled);
+        ImGui::SameLine();
+        if (ImGui::Button("Resetar ##clip")) {
+            animCtrl.clipping.min = glm::vec3(-2.0f);
+            animCtrl.clipping.max = glm::vec3(2.0f);
+            clippingChanged = true;
+        }
+        if (animCtrl.clipping.enabled) {
+            ImGui::Separator();
+            auto drawAxisControl = [&](const char* label, float* minVal, float* maxVal) {
+                ImGui::Text("%s", label);
+                clippingChanged |= ImGui::SliderFloat((std::string("Min ##") + label).c_str(), minVal, -2.0f, 2.0f);
+                clippingChanged |= ImGui::SliderFloat((std::string("Max ##") + label).c_str(), maxVal, -2.0f, 2.0f);
+                if (*minVal > *maxVal) *minVal = *maxVal;
+            };
+            bool isRotated3D = (animCtrl.getCurrentMode() == AnimationController::Mode3D);
+            drawAxisControl("Eixo X (Largura)", &animCtrl.clipping.min.x, &animCtrl.clipping.max.x);
+            ImGui::Spacing();
+            // Contextual mapping for Y/Z axes
+            if (isRotated3D) {
+                drawAxisControl("Eixo Y (Altura)", &animCtrl.clipping.min.z, &animCtrl.clipping.max.z);
+                ImGui::Spacing();
+                drawAxisControl("Eixo Z (Profundidade)", &animCtrl.clipping.min.y, &animCtrl.clipping.max.y);
+            } else {
+                drawAxisControl("Eixo Y (Altura)", &animCtrl.clipping.min.y, &animCtrl.clipping.max.y);
+                ImGui::Spacing();
+                drawAxisControl("Eixo Z (Profundidade)", &animCtrl.clipping.min.z, &animCtrl.clipping.max.z);
+            }
+        }
+        if (clippingChanged) animCtrl.m_visualDirty = true;
+    }
     ImGui::SetNextWindowSize(ImVec2(480, 250), ImGuiCond_FirstUseEver);
     ImGui::Begin("Menu Principal");
 

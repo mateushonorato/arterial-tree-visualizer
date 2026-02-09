@@ -32,6 +32,7 @@ set(SOURCES
     lib/imgui/backends/imgui_impl_glfw.cpp
     lib/imgui/backends/imgui_impl_opengl3.cpp
     src/Camera.cpp
+    src/ClippingUtils.cpp
 )
 
 add_executable(ArterialVis ${SOURCES})
