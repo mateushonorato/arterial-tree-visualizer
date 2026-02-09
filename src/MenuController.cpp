@@ -47,7 +47,8 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
     
     ImGui::Text("Frame: %d / %d", currentFrame + 1, totalFrames);
     
-    if (ImGui::Button(animCtrl.isPlaying() ? "Pause ||" : "Play >")) {
+    // Play/Pause button and SPACE shortcut
+    if (ImGui::Button(animCtrl.isPlaying() ? "Pause ||" : "Play >") || ImGui::IsKeyPressed(ImGuiKey_Space)) {
         animCtrl.togglePlay();
     }
 
