@@ -67,6 +67,7 @@ public:
     float objectColor[3] = {1.0f, 0.0f, 0.0f}; // Red
     float lightPos[3] = {10.0f, 10.0f, 10.0f};
     float transparency = 1.0f;
+    int lightingMode = 0; // 0=Phong, 1=Gouraud, 2=Flat
     bool m_visualDirty = true;
     // UI toggle for showing spheres (joints)
     bool showSpheres = true;

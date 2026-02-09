@@ -68,6 +68,11 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
     dirty |= ImGui::SliderFloat("Escala do Raio", &animCtrl.radiusScale, 0.1f, 5.0f);
     dirty |= ImGui::SliderFloat3("Posição da Luz", animCtrl.lightPos, -20.0f, 20.0f);
     dirty |= ImGui::SliderFloat("Transparência", &animCtrl.transparency, 0.0f, 1.0f);
+    if (ImGui::RadioButton("Phong (Padrão)", animCtrl.lightingMode == 0)) animCtrl.lightingMode = 0;
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Gouraud", animCtrl.lightingMode == 1)) animCtrl.lightingMode = 1;
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Flat", animCtrl.lightingMode == 2)) animCtrl.lightingMode = 2;
     if (ImGui::Checkbox("Suavizar Conexões", &animCtrl.showSpheres)) {
         animCtrl.m_visualDirty = true;
     }

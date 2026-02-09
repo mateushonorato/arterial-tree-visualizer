@@ -222,6 +222,7 @@ int main() {
         shader.setVec3("lightPos", glm::vec3(animCtrl.lightPos[0], animCtrl.lightPos[1], animCtrl.lightPos[2]));
         shader.setVec3("viewPos", camera.getPosition());
         shader.setFloat("alpha", animCtrl.transparency);
+        shader.setInt("lightingMode", animCtrl.lightingMode);
 
         renderer.draw(shader, view, projection, model);
 
