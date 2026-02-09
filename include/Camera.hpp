@@ -4,20 +4,23 @@
 
 class Camera {
 private:
-    glm::vec3 target;
+    glm::vec3 panOffset = glm::vec3(0.0f);
     float distance = 5.0f;
     float yaw = -90.0f;
     float pitch = 0.0f;
     float sensitivity = 0.5f;
     bool isDragging = false;
+    bool isPanning = false;
     float lastX = 400.0f, lastY = 300.0f;
 
 public:
-    Camera(glm::vec3 initialTarget = glm::vec3(0.0f));
+    Camera();
     glm::mat4 getViewMatrix() const;
     glm::vec3 getPosition() const;
     void processMouseScroll(float yoffset);
     void processMouseButton(int button, int action, double xpos, double ypos);
     void processMouseMovement(double xpos, double ypos);
     void setDistance(float d);
+    void processMousePan(float xoffset, float yoffset);
+    void reset();
 };
