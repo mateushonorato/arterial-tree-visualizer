@@ -18,6 +18,7 @@ AnimationController::AnimationController() {
 // --- Mode switching ---
 void AnimationController::setMode2D(ArterialTree* tree, TreeRenderer* renderer) {
     currentMode = Mode2D;
+    this->selectedSegmentIndex = -1;
     currentRootPath = "../data/TP1_2D/";
     refreshDatasets(tree, renderer);
     requestCameraReset();
@@ -25,6 +26,7 @@ void AnimationController::setMode2D(ArterialTree* tree, TreeRenderer* renderer) 
 
 void AnimationController::setMode3D(ArterialTree* tree, TreeRenderer* renderer) {
     currentMode = Mode3D;
+    this->selectedSegmentIndex = -1;
     currentRootPath = "../data/TP2_3D/";
     refreshDatasets(tree, renderer);
     requestCameraReset();
@@ -122,6 +124,7 @@ int AnimationController::getCurrentDatasetIndex() const {
 void AnimationController::setDatasetIndex(int index, ArterialTree& tree, TreeRenderer& renderer) {
     if (index >= 0 && index < (int)availableDatasets.size()) {
         currentDatasetIndex = index;
+        this->selectedSegmentIndex = -1;
         loadPlaylist(availableDatasets[index]);
         loadCurrentFrame(tree, renderer);
         requestCameraReset();
