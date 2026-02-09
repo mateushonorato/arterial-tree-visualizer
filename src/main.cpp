@@ -7,10 +7,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+
 #include "VtkReader.hpp"
 #include "shader.hpp"
 #include "TreeRenderer.hpp"
 #include "SceneContext.hpp"
+#include "ScreenshotUtils.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -184,35 +186,29 @@ int main() {
     double lastTime = glfwGetTime();
 
     // 6. Loop Principal
+
     while (!glfwWindowShouldClose(window)) {
-        // Recalculate model matrix every frame for mode switching
-        glm::mat4 model = glm::mat4(1.0f);
-        if (animCtrl.getCurrentMode() == AnimationController::Mode3D) {
-            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        }
-        // Auto-reset camera if requested by AnimationController
-        if (animCtrl.shouldResetCamera()) {
-            camera.reset();
-            animCtrl.ackCameraReset();
-        }
+        // --- SCREENSHOT LOGIC ---
+        bool isSnapshot = animCtrl.isScreenshotRequested();
+
+        // 1. Clear color (transparent for screenshot, normal otherwise)
+        if (isSnapshot)
+            glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        else
+            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // 2. Animation logic
         double currentTime = glfwGetTime();
         float deltaTime = static_cast<float>(currentTime - lastTime);
         lastTime = currentTime;
-
         processInput(window);
-
-        // Limpeza
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Lógica de Animação
         animCtrl.update(deltaTime, tree, renderer);
 
-
-        // Atualiza aspect ratio e view/projection
+        // 3. Update aspect ratio and view/projection
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
-        glViewport(0, 0, width, height); // Fix initial clipping on some systems
+        glViewport(0, 0, width, height);
         float aspect = (height > 0) ? (float)width / (float)height : 1.0f;
         view = camera.getViewMatrix();
         if (animCtrl.useOrthographic) {
@@ -224,11 +220,11 @@ int main() {
             projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
         }
 
-        // Cursor feedback for panning
+        // 4. Cursor feedback for panning
         bool isPanning = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
         glfwSetCursor(window, isPanning ? handCursor : arrowCursor);
 
-        // Atualiza visualização se necessário
+        // 5. Visual update if needed
         if (animCtrl.isVisualDirty()) {
             if (animCtrl.getCurrentMode() == AnimationController::ModeWireframe) {
                 renderer.initWireframe(tree.nodes, tree.segments,
@@ -246,7 +242,11 @@ int main() {
             animCtrl.resetVisualDirty();
         }
 
-        // Set shader uniforms
+        // 6. Set shader uniforms and draw scene
+        glm::mat4 model = glm::mat4(1.0f);
+        if (animCtrl.getCurrentMode() == AnimationController::Mode3D) {
+            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        }
         shader.use();
         shader.setMat4("model", model);
         shader.setMat4("view", view);
@@ -268,26 +268,29 @@ int main() {
             renderer.draw(shader, view, projection, model, animCtrl.getSelectedSegment());
         }
 
-        // Draw grid and gizmo
+        // 7. Draw grid and gizmo
         if (animCtrl.showGrid) {
             sceneCtx.drawGrid(view, projection);
         }
         if (animCtrl.showGizmo) {
-            int width, height;
-            glfwGetFramebufferSize(window, &width, &height);
             sceneCtx.drawGizmo(view, projection, width, height);
         }
 
-        // Renderização da Interface
+        // 8. Render UI (hide main menu if snapshot)
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        
-        menuCtrl.render(animCtrl, tree, renderer);
-
+        menuCtrl.render(animCtrl, tree, renderer, isSnapshot);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+        // 9. Screenshot capture (before swap)
+        if (isSnapshot) {
+            ScreenshotUtils::saveScreenshot(width, height);
+            animCtrl.resetScreenshotRequest();
+        }
+
+        // 10. Swap and poll
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

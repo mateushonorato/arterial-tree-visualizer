@@ -25,6 +25,8 @@ set(SOURCES
     src/MenuController.cpp
     src/SceneContext.cpp
     src/PickingUtils.cpp
+    src/ScreenshotUtils.cpp
+    src/lodepng.cpp
     lib/imgui/imgui.cpp
     lib/imgui/imgui_draw.cpp
     lib/imgui/imgui_tables.cpp

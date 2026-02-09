@@ -20,7 +20,13 @@ class AnimationController {
     bool m_cameraResetRequested = false;
     // Selection state for picking
     int selectedSegmentIndex = -1;
+    // Screenshot request flag
+    bool m_screenshotRequested = false;
 public:
+        // Screenshot request interface
+        void requestScreenshot() { m_screenshotRequested = true; }
+        bool isScreenshotRequested() const { return m_screenshotRequested; }
+        void resetScreenshotRequest() { m_screenshotRequested = false; }
     ClippingBox clipping;
             // --- Picking/Selection ---
             // Set selected segment index (-1 for none)
