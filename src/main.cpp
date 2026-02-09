@@ -98,17 +98,21 @@ int main() {
     // Matrizes
     glm::mat4 view = glm::mat4(1.0f);
     glm::mat4 projection = glm::mat4(1.0f);
-    glm::mat4 model = glm::mat4(1.0f);
 
     double lastTime = glfwGetTime();
 
     // 6. Loop Principal
     while (!glfwWindowShouldClose(window)) {
-                // Auto-reset camera if requested by AnimationController
-                if (animCtrl.shouldResetCamera()) {
-                    camera.reset();
-                    animCtrl.ackCameraReset();
-                }
+        // Recalculate model matrix every frame for mode switching
+        glm::mat4 model = glm::mat4(1.0f);
+        if (animCtrl.getCurrentMode() == AnimationController::Mode3D) {
+            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        }
+        // Auto-reset camera if requested by AnimationController
+        if (animCtrl.shouldResetCamera()) {
+            camera.reset();
+            animCtrl.ackCameraReset();
+        }
         double currentTime = glfwGetTime();
         float deltaTime = static_cast<float>(currentTime - lastTime);
         lastTime = currentTime;
