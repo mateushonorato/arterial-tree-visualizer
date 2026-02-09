@@ -76,6 +76,7 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
     if (ImGui::Checkbox("Mostrar Grade", &animCtrl.showGrid)) {}
     ImGui::SameLine();
     if (ImGui::Checkbox("Mostrar Gizmo", &animCtrl.showGizmo)) {}
+    ImGui::Checkbox("Projeção Ortográfica", &animCtrl.useOrthographic);
     if (ImGui::Checkbox("Suavizar Conexões", &animCtrl.showSpheres)) {
         animCtrl.m_visualDirty = true;
     }

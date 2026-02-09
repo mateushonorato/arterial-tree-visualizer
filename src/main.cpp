@@ -52,20 +52,18 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         double mouseX_FB = xpos * xScale;
         double mouseY_FB = ypos * yScale;
 
-        // 2. IMPORTANTE: Pegar a View Matrix ATUALIZADA da câmera agora
-        // Não use a variável global 'view', pois ela pode estar atrasada 1 frame.
+        // 2. Pegar View Matrix Atualizada
         glm::mat4 currentView = camera.getViewMatrix();
 
-        // 3. Gera a direção do Raio
-        glm::vec3 rayDir = PickingUtils::getRayFromMouse(mouseX_FB, mouseY_FB, fbWidth, fbHeight, currentView, projection);
+        // 3. CALCULAR RAIO (Origem + Direção)
+        // Usamos a nova função que lida com Ortho e Perspective automaticamente
+        glm::vec3 rayOrigin, rayDir;
+        PickingUtils::getRayFromMouse(mouseX_FB, mouseY_FB, fbWidth, fbHeight, currentView, projection, rayOrigin, rayDir);
         
-        // 4. CORREÇÃO CRÍTICA: Origem do Raio
-        // A função camera.getPosition() ignora o Pan.
-        // A posição real da câmera no mundo é a transladação da View Matrix Inversa.
-        glm::mat4 invView = glm::inverse(currentView);
-        glm::vec3 rayOrigin = glm::vec3(invView[3]); // A 4ª coluna contém a posição X,Y,Z da câmera no mundo
+        // REMOVIDO: A lógica antiga de "glm::inverse(currentView)[3]" 
+        // pois ela quebrava a projeção ortográfica.
 
-        // 5. Matriz Model (-90 graus em 3D)
+        // 4. Matriz Model (-90 graus em 3D)
         glm::mat4 model = glm::mat4(1.0f);
         if (animCtrl.getCurrentMode() == AnimationController::Mode3D) {
             model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -82,8 +80,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             glm::vec3 worldA = glm::vec3(model * localA);
             glm::vec3 worldB = glm::vec3(model * localB);
 
-            // Hitbox
-            float hitRadius = std::max(seg.radius * animCtrl.radiusScale * 2.0f, 0.001f); 
+            // Hitbox ajustada para precisão (1.1x)
+            float hitRadius = std::max(seg.radius * animCtrl.radiusScale * 1.1f, 0.0001f); 
 
             float outDist;
             if (PickingUtils::rayIntersectsSegment(rayOrigin, rayDir, worldA, worldB, hitRadius, outDist)) {
@@ -97,7 +95,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         animCtrl.selectSegment(closestIdx);
     }
 
-    // --- LÓGICA DE CÂMERA (Repasse) ---
     camera.processMouseButton(button, action, xpos, ypos);
 }
 
@@ -205,8 +202,15 @@ int main() {
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height); // Fix initial clipping on some systems
         float aspect = (height > 0) ? (float)width / (float)height : 1.0f;
-        projection = glm::perspective(glm::radians(45.0f), aspect, 0.001f, 100.0f);
         view = camera.getViewMatrix();
+        if (animCtrl.useOrthographic) {
+            float orthoHeight = glm::length(camera.getPosition());
+            orthoHeight = std::max(orthoHeight, 0.1f);
+            float orthoWidth = orthoHeight * aspect;
+            projection = glm::ortho(-orthoWidth, orthoWidth, -orthoHeight, orthoHeight, 0.1f, 100.0f);
+        } else {
+            projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
+        }
 
         // Cursor feedback for panning
         bool isPanning = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;

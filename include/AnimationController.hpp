@@ -70,6 +70,7 @@ public:
     int lightingMode = 0; // 0=Phong, 1=Gouraud, 2=Flat
     bool showGrid = true;
     bool showGizmo = true;
+    bool useOrthographic = false;
     bool m_visualDirty = true;
     // UI toggle for showing spheres (joints)
     bool showSpheres = true;
