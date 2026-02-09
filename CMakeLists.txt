@@ -23,6 +23,7 @@ set(SOURCES
     src/TreeRenderer.cpp
     src/AnimationController.cpp
     src/MenuController.cpp
+    src/SceneContext.cpp
     src/PickingUtils.cpp
     lib/imgui/imgui.cpp
     lib/imgui/imgui_draw.cpp

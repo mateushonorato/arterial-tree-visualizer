@@ -73,6 +73,9 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
     if (ImGui::RadioButton("Gouraud", animCtrl.lightingMode == 1)) animCtrl.lightingMode = 1;
     ImGui::SameLine();
     if (ImGui::RadioButton("Flat", animCtrl.lightingMode == 2)) animCtrl.lightingMode = 2;
+    if (ImGui::Checkbox("Mostrar Grade", &animCtrl.showGrid)) {}
+    ImGui::SameLine();
+    if (ImGui::Checkbox("Mostrar Gizmo", &animCtrl.showGizmo)) {}
     if (ImGui::Checkbox("Suavizar Conexões", &animCtrl.showSpheres)) {
         animCtrl.m_visualDirty = true;
     }

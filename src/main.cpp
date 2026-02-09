@@ -9,6 +9,7 @@
 #include "VtkReader.hpp"
 #include "shader.hpp"
 #include "TreeRenderer.hpp"
+#include "SceneContext.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -27,6 +28,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 // Forward declarations for access
 extern AnimationController animCtrl;
 extern ArterialTree tree;
+extern SceneContext sceneCtx;
 extern glm::mat4 view;
 extern glm::mat4 projection;
 
@@ -117,6 +119,7 @@ void processInput(GLFWwindow* window) {
 // Global for picking callback access
 AnimationController animCtrl;
 ArterialTree tree;
+SceneContext sceneCtx;
 glm::mat4 view;
 glm::mat4 projection;
 
@@ -165,6 +168,7 @@ int main() {
     Shader shader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
     TreeRenderer renderer;
     MenuController menuCtrl;
+    sceneCtx.init();
     view = glm::mat4(1.0f);
     projection = glm::mat4(1.0f);
 
@@ -225,6 +229,16 @@ int main() {
         shader.setInt("lightingMode", animCtrl.lightingMode);
 
         renderer.draw(shader, view, projection, model);
+
+        // Draw grid and gizmo
+        if (animCtrl.showGrid) {
+            sceneCtx.drawGrid(view, projection);
+        }
+        if (animCtrl.showGizmo) {
+            int width, height;
+            glfwGetFramebufferSize(window, &width, &height);
+            sceneCtx.drawGizmo(view, projection, width, height);
+        }
 
         // Renderização da Interface
         ImGui_ImplOpenGL3_NewFrame();
