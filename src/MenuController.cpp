@@ -66,9 +66,21 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
     ImGui::Separator();
     ImGui::Text("Ajustes Visuais");
     bool dirty = false;
-    dirty |= ImGui::SliderFloat("Escala do Raio", &animCtrl.radiusScale, 0.1f, 5.0f);
-    dirty |= ImGui::SliderFloat3("Posição da Luz", animCtrl.lightPos, -20.0f, 20.0f);
-    dirty |= ImGui::SliderFloat("Transparência", &animCtrl.transparency, 0.0f, 1.0f);
+    dirty |= ImGui::SliderFloat("Escala do Raio##radius_scale", &animCtrl.radiusScale, 0.1f, 5.0f, "%.2f", ImGuiSliderFlags_None);
+
+    // Light position sliders: remap scale so -20 is 0, 0 is 20, 20 is 40
+    float lightPosDisplay[3];
+    for (int i = 0; i < 3; ++i) lightPosDisplay[i] = animCtrl.lightPos[i] + 20.0f;
+    bool lightChanged = false;
+    lightChanged |= ImGui::SliderFloat("Luz X (esq-dir)", &lightPosDisplay[0], 0.0f, 40.0f, "%.2f");
+    lightChanged |= ImGui::SliderFloat("Luz Y (baixo-cima)", &lightPosDisplay[1], 0.0f, 40.0f, "%.2f");
+    lightChanged |= ImGui::SliderFloat("Luz Z (profundidade)", &lightPosDisplay[2], 0.0f, 40.0f, "%.2f");
+    if (lightChanged) {
+        for (int i = 0; i < 3; ++i) animCtrl.lightPos[i] = lightPosDisplay[i] - 20.0f;
+        dirty = true;
+    }
+
+    dirty |= ImGui::SliderFloat("Transparência##transparency", &animCtrl.transparency, 0.0f, 1.0f, "%.2f", ImGuiSliderFlags_None);
     if (ImGui::RadioButton("Phong (Padrão)", animCtrl.lightingMode == 0)) animCtrl.lightingMode = 0;
     ImGui::SameLine();
     if (ImGui::RadioButton("Gouraud", animCtrl.lightingMode == 1)) animCtrl.lightingMode = 1;
