@@ -15,6 +15,7 @@ private:
 public:
     Camera(glm::vec3 initialTarget = glm::vec3(0.0f));
     glm::mat4 getViewMatrix() const;
+    glm::vec3 getPosition() const;
     void processMouseScroll(float yoffset);
     void processMouseButton(int button, int action, double xpos, double ypos);
     void processMouseMovement(double xpos, double ypos);

@@ -15,6 +15,10 @@ public:
     TreeRenderer() = default;
     ~TreeRenderer();
 
-    void init(const ArterialTree& tree);
+    void init(const ArterialTree& tree, float radiusMultiplier = 1.0f);
     void draw(Shader& shader, const glm::mat4& view, const glm::mat4& proj, const glm::mat4& model);
+
+private:
+    void buildMeshes(const ArterialTree& tree, float radiusMultiplier);
+    void generateCylinder(const glm::vec3& a, const glm::vec3& b, float radius, std::vector<float>& vertices, std::vector<unsigned int>& indices);
 };

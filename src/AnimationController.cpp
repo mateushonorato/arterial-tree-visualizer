@@ -4,6 +4,15 @@
 
 AnimationController::AnimationController() {
     m_isPlaying = true;
+    radiusScale = 1.0f;
+    objectColor[0] = 1.0f;
+    objectColor[1] = 0.0f;
+    objectColor[2] = 0.0f;
+    lightPos[0] = 10.0f;
+    lightPos[1] = 10.0f;
+    lightPos[2] = 10.0f;
+    transparency = 1.0f;
+    m_visualDirty = true;
     setMode2D();
 }
 // --- Mode switching ---
@@ -71,7 +80,7 @@ void AnimationController::loadCurrentFrame(ArterialTree& tree, TreeRenderer& ren
         if (!VtkReader::load(currentPlaylist[currentFrameIndex], tree)) {
              std::cerr << "Failed to load frame: " << currentPlaylist[currentFrameIndex] << std::endl;
         } else {
-            renderer.init(tree);
+            renderer.init(tree, radiusScale);
         }
     }
 }

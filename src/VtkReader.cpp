@@ -1,6 +1,10 @@
 #include "VtkReader.hpp"
 #include <fstream>
 #include <sstream>
+#include <algorithm>
+#include <iostream>
+#include <cmath>
+#include <limits>
 
 bool VtkReader::load(const std::string& filepath, ArterialTree& outTree) {
     std::ifstream file(filepath);
@@ -134,5 +138,6 @@ bool VtkReader::load(const std::string& filepath, ArterialTree& outTree) {
         return false;
     }
     outTree.segments = tempSegments;
+    outTree.normalize();
     return true;
 }

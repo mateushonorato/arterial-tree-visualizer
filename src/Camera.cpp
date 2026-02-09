@@ -1,5 +1,17 @@
+// Includes must come first
 #include "Camera.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
+#include <cmath>
+
+glm::vec3 Camera::getPosition() const {
+    float yawRad = glm::radians(yaw);
+    float pitchRad = glm::radians(pitch);
+    float x = distance * cosf(pitchRad) * cosf(yawRad);
+    float y = distance * sinf(pitchRad);
+    float z = distance * cosf(pitchRad) * sinf(yawRad);
+    return glm::vec3(x, y, z) + target;
+}
 #include <algorithm>
 #include <cmath>
 
