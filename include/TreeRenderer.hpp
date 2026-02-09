@@ -20,5 +20,10 @@ public:
 
 private:
     void buildMeshes(const ArterialTree& tree, float radiusMultiplier);
+    
+    // Gera um cilindro conectando A e B
     void generateCylinder(const glm::vec3& a, const glm::vec3& b, float radius, std::vector<float>& vertices, std::vector<unsigned int>& indices);
+    
+    // Gera uma esfera (junta) no ponto center
+    void generateSphere(const glm::vec3& center, float radius, std::vector<float>& vertices, std::vector<unsigned int>& indices);
 };
