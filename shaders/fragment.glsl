@@ -5,6 +5,8 @@ in vec3 Normal;
 in vec3 Color;
 in vec3 GouraudColor;
 uniform int lightingMode; // 0=Phong, 1=Gouraud, 2=Flat
+uniform int selectedSegmentID;
+flat in int vSegmentID;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
 uniform float alpha;
@@ -44,6 +46,11 @@ void main()
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
         vec3 specular = specularStrength * spec * vec3(1.0);
         result = ambient + diffuse + specular;
+    }
+    // Highlight selected segment
+    if (selectedSegmentID != -1 && vSegmentID == selectedSegmentID) {
+        result = mix(result, vec3(1.0, 1.0, 0.0), 0.6);
+        result *= 1.4;
     }
     FragColor = vec4(result, alpha);
 }

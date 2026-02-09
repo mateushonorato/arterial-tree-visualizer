@@ -3,6 +3,7 @@
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec3 aColor;
+layout (location = 3) in int aSegmentID;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -15,6 +16,7 @@ out vec3 FragPos;
 out vec3 Normal;
 out vec3 Color;
 out vec3 GouraudColor;
+flat out int vSegmentID;
 
 void main()
 {
@@ -22,6 +24,7 @@ void main()
     Normal = mat3(transpose(inverse(model))) * aNormal;
     Color = aColor;
     GouraudColor = vec3(0.0);
+        vSegmentID = aSegmentID;
     if (lightingMode == 1) {
         // Gouraud shading: compute lighting here
         float ambientStrength = 0.2;

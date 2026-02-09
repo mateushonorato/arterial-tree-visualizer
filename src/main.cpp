@@ -232,7 +232,7 @@ int main() {
         shader.setFloat("alpha", animCtrl.transparency);
         shader.setInt("lightingMode", animCtrl.lightingMode);
 
-        renderer.draw(shader, view, projection, model);
+        renderer.draw(shader, view, projection, model, animCtrl.getSelectedSegment());
 
         // Draw grid and gizmo
         if (animCtrl.showGrid) {
