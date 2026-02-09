@@ -39,8 +39,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     glfwGetCursorPos(window, &xpos, &ypos);
 
     // --- LÓGICA DE PICKING (Botão Esquerdo) ---
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-        
+    // Se Ctrl NÃO está pressionado, faz picking normalmente
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !(mods & GLFW_MOD_CONTROL)) {
         // 1. Configuração DPI
         int winWidth, winHeight;
         glfwGetWindowSize(window, &winWidth, &winHeight);
@@ -59,9 +59,6 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
         // Usamos a nova função que lida com Ortho e Perspective automaticamente
         glm::vec3 rayOrigin, rayDir;
         PickingUtils::getRayFromMouse(mouseX_FB, mouseY_FB, fbWidth, fbHeight, currentView, projection, rayOrigin, rayDir);
-        
-        // REMOVIDO: A lógica antiga de "glm::inverse(currentView)[3]" 
-        // pois ela quebrava a projeção ortográfica.
 
         // 4. Matriz Model (-90 graus em 3D)
         glm::mat4 model = glm::mat4(1.0f);
@@ -74,14 +71,14 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
         for (size_t i = 0; i < tree.segments.size(); ++i) {
             const auto& seg = tree.segments[i];
-            
+
             glm::vec4 localA = glm::vec4(tree.nodes[seg.indexA].position, 1.0f);
             glm::vec4 localB = glm::vec4(tree.nodes[seg.indexB].position, 1.0f);
             glm::vec3 worldA = glm::vec3(model * localA);
             glm::vec3 worldB = glm::vec3(model * localB);
 
             // Hitbox ajustada para precisão (1.1x)
-            float hitRadius = std::max(seg.radius * animCtrl.radiusScale * 1.1f, 0.0001f); 
+            float hitRadius = std::max(seg.radius * animCtrl.radiusScale * 1.1f, 0.0001f);
 
             float outDist;
             if (PickingUtils::rayIntersectsSegment(rayOrigin, rayDir, worldA, worldB, hitRadius, outDist)) {
@@ -91,8 +88,16 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
                 }
             }
         }
-        
+
         animCtrl.selectSegment(closestIdx, tree);
+    }
+
+    // Se Ctrl está pressionado E botão esquerdo, trata como pan (mão)
+    // (aciona o pan do botão direito, mas com o esquerdo+Ctrl)
+    if (button == GLFW_MOUSE_BUTTON_LEFT && (mods & GLFW_MOD_CONTROL)) {
+        // Simula botão direito para Camera
+        camera.processMouseButton(GLFW_MOUSE_BUTTON_RIGHT, action, xpos, ypos);
+        return;
     }
 
     camera.processMouseButton(button, action, xpos, ypos);
