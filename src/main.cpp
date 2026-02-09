@@ -9,12 +9,36 @@
 #include "VtkReader.hpp"
 #include "shader.hpp"
 #include "TreeRenderer.hpp"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "Camera.hpp"
+
+
+// Global camera instance
+Camera camera;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
+}
+
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
+    if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse) return;
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    camera.processMouseButton(button, action, xpos, ypos);
+}
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+    camera.processMouseMovement(xpos, ypos);
+}
+
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse) return;
+    camera.processMouseScroll(static_cast<float>(yoffset));
 }
 
 void processInput(GLFWwindow* window) {
@@ -35,7 +59,11 @@ int main() {
         return -1;
     }
     glfwMakeContextCurrent(window);
+
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     // 2. Inicialização do GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) return -1;
@@ -62,8 +90,8 @@ int main() {
     MenuController menuCtrl;
 
     // Matrizes
-    glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -0.2f));
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.01f, 10.0f);
+    glm::mat4 view = glm::mat4(1.0f);
+    glm::mat4 projection = glm::mat4(1.0f);
     glm::mat4 model = glm::mat4(1.0f);
 
     double lastTime = glfwGetTime();
@@ -82,6 +110,14 @@ int main() {
 
         // Lógica de Animação
         animCtrl.update(deltaTime, tree, renderer);
+
+
+        // Atualiza aspect ratio e view/projection
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+        float aspect = (height > 0) ? (float)width / (float)height : 1.0f;
+        projection = glm::perspective(glm::radians(45.0f), aspect, 0.001f, 100.0f);
+        view = camera.getViewMatrix();
 
         // Renderização da Árvore
         renderer.draw(shader, view, projection, model);
