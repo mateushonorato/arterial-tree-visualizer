@@ -14,6 +14,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Camera.hpp"
+#include "PickingUtils.hpp"
 
 
 // Global camera instance
@@ -23,11 +24,78 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
+// Forward declarations for access
+extern AnimationController animCtrl;
+extern ArterialTree tree;
+extern glm::mat4 view;
+extern glm::mat4 projection;
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
     if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse) return;
+
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
+
+    // --- LÓGICA DE PICKING (Botão Esquerdo) ---
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        
+        // 1. Configuração DPI
+        int winWidth, winHeight;
+        glfwGetWindowSize(window, &winWidth, &winHeight);
+        int fbWidth, fbHeight;
+        glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+
+        float xScale = (float)fbWidth / (float)winWidth;
+        float yScale = (float)fbHeight / (float)winHeight;
+        double mouseX_FB = xpos * xScale;
+        double mouseY_FB = ypos * yScale;
+
+        // 2. IMPORTANTE: Pegar a View Matrix ATUALIZADA da câmera agora
+        // Não use a variável global 'view', pois ela pode estar atrasada 1 frame.
+        glm::mat4 currentView = camera.getViewMatrix();
+
+        // 3. Gera a direção do Raio
+        glm::vec3 rayDir = PickingUtils::getRayFromMouse(mouseX_FB, mouseY_FB, fbWidth, fbHeight, currentView, projection);
+        
+        // 4. CORREÇÃO CRÍTICA: Origem do Raio
+        // A função camera.getPosition() ignora o Pan.
+        // A posição real da câmera no mundo é a transladação da View Matrix Inversa.
+        glm::mat4 invView = glm::inverse(currentView);
+        glm::vec3 rayOrigin = glm::vec3(invView[3]); // A 4ª coluna contém a posição X,Y,Z da câmera no mundo
+
+        // 5. Matriz Model (-90 graus em 3D)
+        glm::mat4 model = glm::mat4(1.0f);
+        if (animCtrl.getCurrentMode() == AnimationController::Mode3D) {
+            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        }
+
+        int closestIdx = -1;
+        float closestDist = std::numeric_limits<float>::max();
+
+        for (size_t i = 0; i < tree.segments.size(); ++i) {
+            const auto& seg = tree.segments[i];
+            
+            glm::vec4 localA = glm::vec4(tree.nodes[seg.indexA].position, 1.0f);
+            glm::vec4 localB = glm::vec4(tree.nodes[seg.indexB].position, 1.0f);
+            glm::vec3 worldA = glm::vec3(model * localA);
+            glm::vec3 worldB = glm::vec3(model * localB);
+
+            // Hitbox
+            float hitRadius = std::max(seg.radius * animCtrl.radiusScale * 2.0f, 0.001f); 
+
+            float outDist;
+            if (PickingUtils::rayIntersectsSegment(rayOrigin, rayDir, worldA, worldB, hitRadius, outDist)) {
+                if (outDist < closestDist) {
+                    closestDist = outDist;
+                    closestIdx = static_cast<int>(i);
+                }
+            }
+        }
+        
+        animCtrl.selectSegment(closestIdx);
+    }
+
+    // --- LÓGICA DE CÂMERA (Repasse) ---
     camera.processMouseButton(button, action, xpos, ypos);
 }
 
@@ -45,6 +113,12 @@ void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
+
+// Global for picking callback access
+AnimationController animCtrl;
+ArterialTree tree;
+glm::mat4 view;
+glm::mat4 projection;
 
 int main() {
     // 1. Inicialização do GLFW
@@ -87,17 +161,12 @@ int main() {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // 4. Objetos do Domínio
-    ArterialTree tree;
+
     Shader shader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
     TreeRenderer renderer;
-    
-    // 5. Controladores MVC
-    AnimationController animCtrl;
     MenuController menuCtrl;
-
-    // Matrizes
-    glm::mat4 view = glm::mat4(1.0f);
-    glm::mat4 projection = glm::mat4(1.0f);
+    view = glm::mat4(1.0f);
+    projection = glm::mat4(1.0f);
 
     double lastTime = glfwGetTime();
 

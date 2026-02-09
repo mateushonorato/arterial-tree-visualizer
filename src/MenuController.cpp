@@ -73,4 +73,22 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
     }
     if (dirty) animCtrl.m_visualDirty = true;
     ImGui::End();
+
+    // --- Selection Properties Panel ---
+    int selIdx = animCtrl.getSelectedSegment();
+    if (selIdx != -1 && selIdx < (int)tree.segments.size()) {
+        const auto& seg = tree.segments[selIdx];
+        const auto& nodeA = tree.nodes[seg.indexA];
+        const auto& nodeB = tree.nodes[seg.indexB];
+        float length = glm::length(nodeA.position - nodeB.position);
+        ImGui::SetNextWindowSize(ImVec2(350, 180), ImGuiCond_Appearing);
+        ImGui::Begin("Propriedades da Seleção", nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+        ImGui::Text("ID do Segmento: %d", selIdx);
+        ImGui::Text("Raio: %.3f mm", seg.radius);
+        ImGui::Text("Comprimento: %.3f mm", length);
+        ImGui::Separator();
+        ImGui::Text("Início: (%.3f, %.3f, %.3f)", nodeA.position.x, nodeA.position.y, nodeA.position.z);
+        ImGui::Text("Fim:    (%.3f, %.3f, %.3f)", nodeB.position.x, nodeB.position.y, nodeB.position.z);
+        ImGui::End();
+    }
 }

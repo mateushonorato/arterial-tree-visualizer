@@ -11,6 +11,7 @@ AnimationController::AnimationController() {
     transparency = 1.0f;
     m_visualDirty = true;
     showSpheres = true;
+    selectedSegmentIndex = -1;
     setMode2D();
     requestCameraReset();
 }

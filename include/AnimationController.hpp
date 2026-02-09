@@ -10,7 +10,14 @@
 class AnimationController {
     // Camera reset logic
     bool m_cameraResetRequested = false;
+    // Selection state for picking
+    int selectedSegmentIndex = -1;
 public:
+            // --- Picking/Selection ---
+            // Set selected segment index (-1 for none)
+            void selectSegment(int index) { selectedSegmentIndex = index; }
+            // Get selected segment index (-1 for none)
+            int getSelectedSegment() const { return selectedSegmentIndex; }
         // Camera reset interface
         bool shouldResetCamera() const { return m_cameraResetRequested; }
         void ackCameraReset() { m_cameraResetRequested = false; }
