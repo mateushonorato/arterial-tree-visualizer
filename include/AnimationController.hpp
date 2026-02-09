@@ -29,7 +29,8 @@ public:
         void requestCameraReset() { m_cameraResetRequested = true; }
     enum Mode {
         Mode2D,
-        Mode3D
+        Mode3D,
+        ModeWireframe
     };
 
 private:
@@ -55,6 +56,7 @@ public:
     // Mode switching
     void setMode2D(ArterialTree* tree = nullptr, TreeRenderer* renderer = nullptr);
     void setMode3D(ArterialTree* tree = nullptr, TreeRenderer* renderer = nullptr);
+    void setModeWireframe(ArterialTree* tree = nullptr, TreeRenderer* renderer = nullptr);
     Mode getCurrentMode() const { return currentMode; }
 
     // Getters e Setters para a UI (MenuController)
@@ -70,6 +72,7 @@ public:
 
     // Visual state variables
     float radiusScale = 1.0f;
+    float lineWidth = 2.0f; // For Wireframe mode (lines)
     float objectColor[3] = {1.0f, 0.0f, 0.0f}; // Red
     float lightPos[3] = {10.0f, 10.0f, 10.0f};
     float transparency = 1.0f;

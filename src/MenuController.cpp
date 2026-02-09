@@ -8,16 +8,25 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
     ImGui::Begin("Menu Principal");
 
 
-    // --- 2D/3D Mode Switch ---
-    int mode = (animCtrl.getCurrentMode() == AnimationController::Mode2D) ? 0 : 1;
+    // --- 2D/3D + Wireframe UI ---
+    int mode2D = (animCtrl.getCurrentMode() == AnimationController::Mode2D || animCtrl.getCurrentMode() == AnimationController::ModeWireframe) ? 1 : 0;
+    int mode3D = (animCtrl.getCurrentMode() == AnimationController::Mode3D) ? 1 : 0;
     ImGui::Text("Modo de Visualização:");
     ImGui::SameLine();
-    if (ImGui::RadioButton("Modo 2D", mode == 0)) {
-        if (mode != 0) animCtrl.setMode2D(&tree, &renderer);
+    if (ImGui::RadioButton("Modo 2D", mode2D)) {
+        if (!mode2D) animCtrl.setMode2D(&tree, &renderer);
     }
     ImGui::SameLine();
-    if (ImGui::RadioButton("Modo 3D", mode == 1)) {
-        if (mode != 1) animCtrl.setMode3D(&tree, &renderer);
+    if (ImGui::RadioButton("Modo 3D", mode3D)) {
+        if (!mode3D) animCtrl.setMode3D(&tree, &renderer);
+    }
+    // Wireframe checkbox only if 2D is active
+    if (animCtrl.getCurrentMode() == AnimationController::Mode2D || animCtrl.getCurrentMode() == AnimationController::ModeWireframe) {
+        bool wireframeActive = (animCtrl.getCurrentMode() == AnimationController::ModeWireframe);
+        if (ImGui::Checkbox("Visualizar Esqueleto (Wireframe)", &wireframeActive)) {
+            if (wireframeActive) animCtrl.setModeWireframe(&tree, &renderer);
+            else animCtrl.setMode2D(&tree, &renderer);
+        }
     }
     ImGui::Separator();
 
@@ -66,32 +75,45 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
     ImGui::Separator();
     ImGui::Text("Ajustes Visuais");
     bool dirty = false;
-    dirty |= ImGui::SliderFloat("Escala do Raio##radius_scale", &animCtrl.radiusScale, 0.1f, 5.0f, "%.2f", ImGuiSliderFlags_None);
 
-    // Light position sliders: remap scale so -20 is 0, 0 is 20, 20 is 40
-    float lightPosDisplay[3];
-    for (int i = 0; i < 3; ++i) lightPosDisplay[i] = animCtrl.lightPos[i] + 20.0f;
-    bool lightChanged = false;
-    lightChanged |= ImGui::SliderFloat("Luz X (esq-dir)", &lightPosDisplay[0], 0.0f, 40.0f, "%.2f");
-    lightChanged |= ImGui::SliderFloat("Luz Y (baixo-cima)", &lightPosDisplay[1], 0.0f, 40.0f, "%.2f");
-    lightChanged |= ImGui::SliderFloat("Luz Z (profundidade)", &lightPosDisplay[2], 0.0f, 40.0f, "%.2f");
-    if (lightChanged) {
-        for (int i = 0; i < 3; ++i) animCtrl.lightPos[i] = lightPosDisplay[i] - 20.0f;
-        dirty = true;
+    // --- Common Visual Controls ---
+    // Unified Thickness Slider
+    // Unified thickness and transparency for all modes
+    if (animCtrl.getCurrentMode() == AnimationController::ModeWireframe) {
+        dirty |= ImGui::SliderFloat("Espessura", &animCtrl.lineWidth, 1.0f, 8.0f, "%.1f", ImGuiSliderFlags_None);
+    } else {
+        dirty |= ImGui::SliderFloat("Espessura", &animCtrl.radiusScale, 0.1f, 5.0f, "%.2f", ImGuiSliderFlags_None);
     }
-
-    dirty |= ImGui::SliderFloat("Transparência##transparency", &animCtrl.transparency, 0.0f, 1.0f, "%.2f", ImGuiSliderFlags_None);
-    if (ImGui::RadioButton("Phong (Padrão)", animCtrl.lightingMode == 0)) animCtrl.lightingMode = 0;
-    ImGui::SameLine();
-    if (ImGui::RadioButton("Gouraud", animCtrl.lightingMode == 1)) animCtrl.lightingMode = 1;
-    ImGui::SameLine();
-    if (ImGui::RadioButton("Flat", animCtrl.lightingMode == 2)) animCtrl.lightingMode = 2;
+    dirty |= ImGui::SliderFloat("Transparência", &animCtrl.transparency, 0.0f, 1.0f, "%.2f", ImGuiSliderFlags_None);
     if (ImGui::Checkbox("Mostrar Grade", &animCtrl.showGrid)) {}
     ImGui::SameLine();
     if (ImGui::Checkbox("Mostrar Gizmo", &animCtrl.showGizmo)) {}
     ImGui::Checkbox("Projeção Ortográfica", &animCtrl.useOrthographic);
-    if (ImGui::Checkbox("Suavizar Conexões", &animCtrl.showSpheres)) {
-        animCtrl.m_visualDirty = true;
+
+    // --- Advanced/Lighting Controls (only for 2D/3D, hidden in Wireframe) ---
+    if (animCtrl.getCurrentMode() != AnimationController::ModeWireframe) {
+        ImGui::Separator();
+        ImGui::Text("Opções Avançadas de Renderização");
+        // Light position sliders: remap scale so -20 is 0, 0 is 20, 20 is 40
+        float lightPosDisplay[3];
+        for (int i = 0; i < 3; ++i) lightPosDisplay[i] = animCtrl.lightPos[i] + 20.0f;
+        bool lightChanged = false;
+        lightChanged |= ImGui::SliderFloat("Luz X (esq-dir)", &lightPosDisplay[0], 0.0f, 40.0f, "%.2f");
+        lightChanged |= ImGui::SliderFloat("Luz Y (baixo-cima)", &lightPosDisplay[1], 0.0f, 40.0f, "%.2f");
+        lightChanged |= ImGui::SliderFloat("Luz Z (profundidade)", &lightPosDisplay[2], 0.0f, 40.0f, "%.2f");
+        if (lightChanged) {
+            for (int i = 0; i < 3; ++i) animCtrl.lightPos[i] = lightPosDisplay[i] - 20.0f;
+            dirty = true;
+        }
+        // Transparência slider is now unified above
+        if (ImGui::RadioButton("Phong (Padrão)", animCtrl.lightingMode == 0)) animCtrl.lightingMode = 0;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Gouraud", animCtrl.lightingMode == 1)) animCtrl.lightingMode = 1;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Flat", animCtrl.lightingMode == 2)) animCtrl.lightingMode = 2;
+        if (ImGui::Checkbox("Suavizar Conexões", &animCtrl.showSpheres)) {
+            animCtrl.m_visualDirty = true;
+        }
     }
     if (dirty) animCtrl.m_visualDirty = true;
     ImGui::End();

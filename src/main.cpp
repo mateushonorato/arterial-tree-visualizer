@@ -155,7 +155,7 @@ int main() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.FontGlobalScale = 1.5f;
+    //io.FontGlobalScale = 1.5f;
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
@@ -168,6 +168,7 @@ int main() {
     // 4. Objetos do Domínio
 
     Shader shader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
+    Shader lineShader("../shaders/line_vertex.glsl", "../shaders/line_fragment.glsl");
     TreeRenderer renderer;
     MenuController menuCtrl;
     sceneCtx.init();
@@ -237,7 +238,17 @@ int main() {
         shader.setFloat("alpha", animCtrl.transparency);
         shader.setInt("lightingMode", animCtrl.lightingMode);
 
-        renderer.draw(shader, view, projection, model, animCtrl.getSelectedSegment());
+        if (animCtrl.getCurrentMode() == AnimationController::ModeWireframe) {
+            lineShader.use();
+            lineShader.setMat4("model", model);
+            lineShader.setMat4("view", view);
+            lineShader.setMat4("projection", projection);
+            lineShader.setInt("selectedSegmentID", animCtrl.getSelectedSegment());
+            lineShader.setFloat("alpha", animCtrl.transparency);
+            renderer.drawWireframe(lineShader, view, projection, model, animCtrl.lineWidth, animCtrl.getSelectedSegment());
+        } else {
+            renderer.draw(shader, view, projection, model, animCtrl.getSelectedSegment());
+        }
 
         // Draw grid and gizmo
         if (animCtrl.showGrid) {

@@ -1,6 +1,15 @@
+
 #include "AnimationController.hpp"
 #include <algorithm>
 #include <iostream>
+
+void AnimationController::setModeWireframe(ArterialTree* tree, TreeRenderer* renderer) {
+    currentMode = ModeWireframe;
+    this->selectedSegmentIndex = -1;
+    currentRootPath = "../data/TP1_2D/";
+    refreshDatasets(tree, renderer);
+    requestCameraReset();
+}
 
 AnimationController::AnimationController() {
     m_isPlaying = true;
@@ -79,12 +88,16 @@ void AnimationController::loadPlaylist(const std::string& folderName) {
 
 void AnimationController::loadCurrentFrame(ArterialTree& tree, TreeRenderer& renderer) {
     if (currentPlaylist.empty()) return;
-    
+
     if (currentFrameIndex >= 0 && currentFrameIndex < (int)currentPlaylist.size()) {
         if (!VtkReader::load(currentPlaylist[currentFrameIndex], tree)) {
-             std::cerr << "Failed to load frame: " << currentPlaylist[currentFrameIndex] << std::endl;
+            std::cerr << "Failed to load frame: " << currentPlaylist[currentFrameIndex] << std::endl;
         } else {
-            renderer.init(tree, radiusScale);
+            if (currentMode == ModeWireframe) {
+                renderer.initWireframe(tree.nodes, tree.segments);
+            } else {
+                renderer.init(tree, radiusScale);
+            }
             // Restore persistent selection if lastSelectedMidpoint is valid
             if (selectedSegmentIndex != -1 && tree.segments.size() > 0) {
                 float minDist = std::numeric_limits<float>::max();

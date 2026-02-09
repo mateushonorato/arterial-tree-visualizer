@@ -1,3 +1,73 @@
+// Modern OpenGL line rendering for Wireframe mode
+#include "TreeRenderer.hpp"
+#include <vector>
+#include <glm/glm.hpp>
+
+void TreeRenderer::initWireframe(const std::vector<ArterialNode>& nodes, const std::vector<ArterialSegment>& segments) {
+    // Clean up previous buffer if needed
+    if (wireframeBuf.vbo) glDeleteBuffers(1, &wireframeBuf.vbo);
+    if (wireframeBuf.vao) glDeleteVertexArrays(1, &wireframeBuf.vao);
+    wireframeBuf.vbo = 0;
+    wireframeBuf.vao = 0;
+    wireframeBuf.vertexCount = 0;
+
+    // 1. Find min/max radius
+    float minRadius = std::numeric_limits<float>::max();
+    float maxRadius = -std::numeric_limits<float>::max();
+    for (const auto& seg : segments) {
+        minRadius = std::min(minRadius, seg.radius);
+        maxRadius = std::max(maxRadius, seg.radius);
+    }
+
+    // 2. Interleaved buffer: position (vec3), color (vec3), segmentID (int)
+    struct WireframeVertex {
+        glm::vec3 pos;
+        glm::vec3 color;
+        int segmentID;
+    };
+    std::vector<WireframeVertex> data;
+    data.reserve(segments.size() * 2);
+    for (size_t i = 0; i < segments.size(); ++i) {
+        const auto& seg = segments[i];
+        // Node A
+        const glm::vec3& a = nodes[seg.indexA].position;
+        glm::vec3 colorA = getHeatMapColor(seg.radius, minRadius, maxRadius);
+        data.push_back(WireframeVertex{a, colorA, static_cast<int>(i)});
+        // Node B
+        const glm::vec3& b = nodes[seg.indexB].position;
+        glm::vec3 colorB = getHeatMapColor(seg.radius, minRadius, maxRadius);
+        data.push_back(WireframeVertex{b, colorB, static_cast<int>(i)});
+    }
+    wireframeBuf.vertexCount = data.size();
+
+    glGenVertexArrays(1, &wireframeBuf.vao);
+    glGenBuffers(1, &wireframeBuf.vbo);
+    glBindVertexArray(wireframeBuf.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, wireframeBuf.vbo);
+    glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(WireframeVertex), data.data(), GL_STATIC_DRAW);
+    // Attribute 0: position (x, y, z)
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(WireframeVertex), (void*)offsetof(WireframeVertex, pos));
+    // Attribute 2: color (r, g, b)
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(WireframeVertex), (void*)offsetof(WireframeVertex, color));
+    // Attribute 3: segmentID (int)
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, 1, GL_INT, sizeof(WireframeVertex), (void*)offsetof(WireframeVertex, segmentID));
+    glBindVertexArray(0);
+}
+
+void TreeRenderer::drawWireframe(Shader& shader, const glm::mat4& view, const glm::mat4& projection, const glm::mat4& model, float width, int selectedSegmentID) {
+    shader.use();
+    shader.setMat4("model", model);
+    shader.setMat4("view", view);
+    shader.setMat4("projection", projection);
+    shader.setInt("selectedSegmentID", selectedSegmentID);
+    glLineWidth(width);
+    glBindVertexArray(wireframeBuf.vao);
+    glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(wireframeBuf.vertexCount));
+    glBindVertexArray(0);
+}
 #include "TreeRenderer.hpp"
 #include <vector>
 #include <cmath>

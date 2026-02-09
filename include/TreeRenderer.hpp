@@ -13,10 +13,19 @@ struct Vertex {
     int segmentID;
 };
 
+struct WireframeRenderBuffers {
+    GLuint vao = 0;
+    GLuint vbo = 0;
+    size_t vertexCount = 0;
+};
+
 class TreeRenderer {
 private:
     unsigned int VAO = 0, VBO = 0, EBO = 0;
     size_t indexCount = 0;
+
+    // Wireframe mode buffers
+    WireframeRenderBuffers wireframeBuf;
 
 public:
     TreeRenderer() = default;
@@ -24,6 +33,10 @@ public:
 
     void init(const ArterialTree& tree, float radiusMultiplier = 1.0f, bool showSpheres = true);
     void draw(Shader& shader, const glm::mat4& view, const glm::mat4& proj, const glm::mat4& model, int selectedSegmentID = -1);
+
+    // Wireframe mode
+    void initWireframe(const std::vector<ArterialNode>& nodes, const std::vector<ArterialSegment>& segments);
+    void drawWireframe(Shader& shader, const glm::mat4& view, const glm::mat4& projection, const glm::mat4& model, float width, int selectedSegmentID = -1);
 
 private:
     void buildMeshes(const ArterialTree& tree, float radiusMultiplier, bool showSpheres);
