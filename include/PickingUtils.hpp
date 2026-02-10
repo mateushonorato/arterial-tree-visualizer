@@ -3,16 +3,16 @@
 
 #include <glm/glm.hpp>
 
-namespace PickingUtils {
+namespace PickingUtils
+{
     // Calcula Origem e Direção corretas para Perspectiva E Ortográfica
     void getRayFromMouse(
-        double mouseX, double mouseY, 
-        int screenW, int screenH, 
-        const glm::mat4& view, 
-        const glm::mat4& projection,
-        glm::vec3& outOrigin,
-        glm::vec3& outDir
-    );
+        double mouseX, double mouseY,
+        int screenW, int screenH,
+        const glm::mat4 &view,
+        const glm::mat4 &projection,
+        glm::vec3 &outOrigin,
+        glm::vec3 &outDir);
 
     bool rayIntersectsSegment(
         glm::vec3 rayOrigin,
@@ -20,8 +20,7 @@ namespace PickingUtils {
         glm::vec3 segA,
         glm::vec3 segB,
         float segRadius,
-        float& outDist
-    );
+        float &outDist);
 }
 
 #endif // PICKING_UTILS_HPP

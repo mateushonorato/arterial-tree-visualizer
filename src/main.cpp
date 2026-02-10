@@ -20,11 +20,11 @@
 #include "Camera.hpp"
 #include "PickingUtils.hpp"
 
-
 // Global camera instance
 Camera camera;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+{
     glViewport(0, 0, width, height);
 }
 
@@ -35,15 +35,18 @@ extern SceneContext sceneCtx;
 extern glm::mat4 view;
 extern glm::mat4 projection;
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-    if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse) return;
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
+{
+    if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse)
+        return;
 
     double xpos, ypos;
     glfwGetCursorPos(window, &xpos, &ypos);
 
     // --- LÓGICA DE PICKING (Botão Esquerdo) ---
     // Se Ctrl NÃO está pressionado, faz picking normalmente
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !(mods & GLFW_MOD_CONTROL)) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && !(mods & GLFW_MOD_CONTROL))
+    {
         // 1. Configuração DPI
         int winWidth, winHeight;
         glfwGetWindowSize(window, &winWidth, &winHeight);
@@ -65,21 +68,25 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
         // 4. Matriz Model (-90 graus em 3D)
         glm::mat4 model = glm::mat4(1.0f);
-        if (animCtrl.getCurrentMode() == AnimationController::Mode3D) {
+        if (animCtrl.getCurrentMode() == AnimationController::Mode3D)
+        {
             model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         }
 
         int closestIdx = -1;
         float closestDist = std::numeric_limits<float>::max();
 
-        for (size_t i = 0; i < tree.segments.size(); ++i) {
-            const auto& seg = tree.segments[i];
+        for (size_t i = 0; i < tree.segments.size(); ++i)
+        {
+            const auto &seg = tree.segments[i];
             glm::vec3 a = tree.nodes[seg.indexA].position;
             glm::vec3 b = tree.nodes[seg.indexB].position;
             // Clipping check
-            if (animCtrl.clipping.enabled) {
+            if (animCtrl.clipping.enabled)
+            {
                 glm::vec3 tempA = a, tempB = b;
-                if (!ClippingUtils::clipSegment(tempA, tempB, animCtrl.clipping.min, animCtrl.clipping.max)) {
+                if (!ClippingUtils::clipSegment(tempA, tempB, animCtrl.clipping.min, animCtrl.clipping.max))
+                {
                     continue;
                 }
             }
@@ -89,8 +96,10 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
             glm::vec3 worldB = glm::vec3(model * localB);
             float hitRadius = std::max(seg.radius * animCtrl.radiusScale * 1.1f, 0.0001f);
             float outDist;
-            if (PickingUtils::rayIntersectsSegment(rayOrigin, rayDir, worldA, worldB, hitRadius, outDist)) {
-                if (outDist < closestDist) {
+            if (PickingUtils::rayIntersectsSegment(rayOrigin, rayDir, worldA, worldB, hitRadius, outDist))
+            {
+                if (outDist < closestDist)
+                {
                     closestDist = outDist;
                     closestIdx = static_cast<int>(i);
                 }
@@ -102,7 +111,8 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 
     // Se Ctrl está pressionado E botão esquerdo, trata como pan (mão)
     // (aciona o pan do botão direito, mas com o esquerdo+Ctrl)
-    if (button == GLFW_MOUSE_BUTTON_LEFT && (mods & GLFW_MOD_CONTROL)) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && (mods & GLFW_MOD_CONTROL))
+    {
         // Simula botão direito para Camera
         camera.processMouseButton(GLFW_MOUSE_BUTTON_RIGHT, action, xpos, ypos);
         return;
@@ -111,17 +121,20 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     camera.processMouseButton(button, action, xpos, ypos);
 }
 
-void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
+void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
+{
     camera.processMouseMovement(xpos, ypos);
 }
 
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse) return;
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+{
+    if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse)
+        return;
     camera.processMouseScroll(static_cast<float>(yoffset));
 }
 
-void processInput(GLFWwindow* window) {
+void processInput(GLFWwindow *window)
+{
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 }
@@ -133,15 +146,18 @@ SceneContext sceneCtx;
 glm::mat4 view;
 glm::mat4 projection;
 
-int main() {
+int main()
+{
     // 1. Inicialização do GLFW
-    if (!glfwInit()) return -1;
+    if (!glfwInit())
+        return -1;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Arterial Tree Visualization", nullptr, nullptr);
-    if (!window) {
+    GLFWwindow *window = glfwCreateWindow(1280, 720, "Arterial Tree Visualization", nullptr, nullptr);
+    if (!window)
+    {
         glfwTerminate();
         return -1;
     }
@@ -153,17 +169,19 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
 
     // 2. Inicialização do GLAD
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) return -1;
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        return -1;
 
     // Cursor feedback for panning
-    GLFWcursor* handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
-    GLFWcursor* arrowCursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+    GLFWcursor *handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+    GLFWcursor *arrowCursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
 
     // 3. Inicialização do ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    //io.FontGlobalScale = 1.5f;
+    ImGuiIO &io = ImGui::GetIO();
+    (void)io;
+    // io.FontGlobalScale = 1.5f;
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
@@ -187,7 +205,8 @@ int main() {
 
     // 6. Loop Principal
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         // --- SCREENSHOT LOGIC ---
         bool isSnapshot = animCtrl.isScreenshotRequested();
 
@@ -211,12 +230,15 @@ int main() {
         glViewport(0, 0, width, height);
         float aspect = (height > 0) ? (float)width / (float)height : 1.0f;
         view = camera.getViewMatrix();
-        if (animCtrl.useOrthographic) {
+        if (animCtrl.useOrthographic)
+        {
             float orthoHeight = glm::length(camera.getPosition());
             orthoHeight = std::max(orthoHeight, 0.1f);
             float orthoWidth = orthoHeight * aspect;
             projection = glm::ortho(-orthoWidth, orthoWidth, -orthoHeight, orthoHeight, 0.1f, 100.0f);
-        } else {
+        }
+        else
+        {
             projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
         }
 
@@ -225,26 +247,31 @@ int main() {
         glfwSetCursor(window, isPanning ? handCursor : arrowCursor);
 
         // 5. Visual update if needed
-        if (animCtrl.isVisualDirty()) {
-            if (animCtrl.getCurrentMode() == AnimationController::ModeWireframe) {
+        if (animCtrl.isVisualDirty())
+        {
+            if (animCtrl.getCurrentMode() == AnimationController::ModeWireframe)
+            {
                 renderer.initWireframe(tree.nodes, tree.segments,
-                    animCtrl.clipping.enabled,
-                    animCtrl.clipping.min,
-                    animCtrl.clipping.max);
-            } else {
+                                       animCtrl.clipping.enabled,
+                                       animCtrl.clipping.min,
+                                       animCtrl.clipping.max);
+            }
+            else
+            {
                 renderer.init(tree,
-                    animCtrl.radiusScale,
-                    animCtrl.showSpheres,
-                    animCtrl.clipping.enabled,
-                    animCtrl.clipping.min,
-                    animCtrl.clipping.max);
+                              animCtrl.radiusScale,
+                              animCtrl.showSpheres,
+                              animCtrl.clipping.enabled,
+                              animCtrl.clipping.min,
+                              animCtrl.clipping.max);
             }
             animCtrl.resetVisualDirty();
         }
 
         // 6. Set shader uniforms and draw scene
         glm::mat4 model = glm::mat4(1.0f);
-        if (animCtrl.getCurrentMode() == AnimationController::Mode3D) {
+        if (animCtrl.getCurrentMode() == AnimationController::Mode3D)
+        {
             model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
         }
         shader.use();
@@ -256,7 +283,8 @@ int main() {
         shader.setFloat("alpha", animCtrl.transparency);
         shader.setInt("lightingMode", animCtrl.lightingMode);
 
-        if (animCtrl.getCurrentMode() == AnimationController::ModeWireframe) {
+        if (animCtrl.getCurrentMode() == AnimationController::ModeWireframe)
+        {
             lineShader.use();
             lineShader.setMat4("model", model);
             lineShader.setMat4("view", view);
@@ -264,15 +292,19 @@ int main() {
             lineShader.setInt("selectedSegmentID", animCtrl.getSelectedSegment());
             lineShader.setFloat("alpha", animCtrl.transparency);
             renderer.drawWireframe(lineShader, view, projection, model, animCtrl.lineWidth, animCtrl.getSelectedSegment());
-        } else {
+        }
+        else
+        {
             renderer.draw(shader, view, projection, model, animCtrl.getSelectedSegment());
         }
 
         // 7. Draw grid and gizmo
-        if (animCtrl.showGrid) {
+        if (animCtrl.showGrid)
+        {
             sceneCtx.drawGrid(view, projection);
         }
-        if (animCtrl.showGizmo) {
+        if (animCtrl.showGizmo)
+        {
             sceneCtx.drawGizmo(view, projection, width, height);
         }
 
@@ -285,7 +317,8 @@ int main() {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         // 9. Screenshot capture (before swap)
-        if (isSnapshot) {
+        if (isSnapshot)
+        {
             ScreenshotUtils::saveScreenshot(width, height);
             animCtrl.resetScreenshotRequest();
         }

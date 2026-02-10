@@ -4,7 +4,7 @@
 #include <array>
 #include <iostream>
 
-static const char* gridVertexShader = R"(
+static const char *gridVertexShader = R"(
 #version 330 core
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aColor;
@@ -17,7 +17,7 @@ void main() {
 }
 )";
 
-static const char* gridFragmentShader = R"(
+static const char *gridFragmentShader = R"(
 #version 330 core
 in vec3 vColor;
 out vec4 FragColor;
@@ -27,27 +27,36 @@ void main() {
 )";
 
 SceneContext::SceneContext() {}
-SceneContext::~SceneContext() {
-    if (gridVAO) glDeleteVertexArrays(1, &gridVAO);
-    if (gridVBO) glDeleteBuffers(1, &gridVBO);
-    if (gizmoVAO) glDeleteVertexArrays(1, &gizmoVAO);
-    if (gizmoVBO) glDeleteBuffers(1, &gizmoVBO);
-    if (shaderProgram) glDeleteProgram(shaderProgram);
+SceneContext::~SceneContext()
+{
+    if (gridVAO)
+        glDeleteVertexArrays(1, &gridVAO);
+    if (gridVBO)
+        glDeleteBuffers(1, &gridVBO);
+    if (gizmoVAO)
+        glDeleteVertexArrays(1, &gizmoVAO);
+    if (gizmoVBO)
+        glDeleteBuffers(1, &gizmoVBO);
+    if (shaderProgram)
+        glDeleteProgram(shaderProgram);
 }
 
-void SceneContext::init() {
+void SceneContext::init()
+{
     shaderProgram = compileShader(gridVertexShader, gridFragmentShader);
     createGridLines();
     createGizmoAxes();
 }
 
-void SceneContext::createGridLines() {
+void SceneContext::createGridLines()
+{
     std::vector<float> gridVerts;
     float min = -10.0f, max = 10.0f;
     int N = 21; // 21 lines per axis
     float colorMajor[3] = {0.5f, 0.5f, 0.5f};
     float colorMinor[3] = {0.3f, 0.3f, 0.3f};
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < N; ++i)
+    {
         float x = min + (max - min) * i / (N - 1);
         // X lines (parallel to Z)
         gridVerts.insert(gridVerts.end(), {x, 0, min, colorMinor[0], colorMinor[1], colorMinor[2]});
@@ -67,35 +76,36 @@ void SceneContext::createGridLines() {
     glBindVertexArray(gridVAO);
     glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
     glBufferData(GL_ARRAY_BUFFER, gridVerts.size() * sizeof(float), gridVerts.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     glBindVertexArray(0);
 }
 
-void SceneContext::createGizmoAxes() {
+void SceneContext::createGizmoAxes()
+{
     float axes[] = {
         // X axis (red)
-        0,0,0, 1,0,0,   1,0,0, 1,0,0,
+        0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
         // Y axis (green)
-        0,0,0, 0,1,0,   0,1,0, 0,1,0,
+        0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
         // Z axis (blue)
-        0,0,0, 0,0,1,   0,0,1, 0,0,1
-    };
+        0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1};
     glGenVertexArrays(1, &gizmoVAO);
     glGenBuffers(1, &gizmoVBO);
     glBindVertexArray(gizmoVAO);
     glBindBuffer(GL_ARRAY_BUFFER, gizmoVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(axes), axes, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
     glBindVertexArray(0);
 }
 
-GLuint SceneContext::compileShader(const char* vsrc, const char* fsrc) {
+GLuint SceneContext::compileShader(const char *vsrc, const char *fsrc)
+{
     GLint success;
     char infoLog[512];
 
@@ -105,9 +115,11 @@ GLuint SceneContext::compileShader(const char* vsrc, const char* fsrc) {
     glCompileShader(vs);
     // Verificação de Erro
     glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
-    if (!success) {
+    if (!success)
+    {
         glGetShaderInfoLog(vs, 512, nullptr, infoLog);
-        std::cerr << "ERRO::SCENE::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        std::cerr << "ERRO::SCENE::VERTEX::COMPILATION_FAILED\n"
+                  << infoLog << std::endl;
     }
 
     // Fragment Shader
@@ -116,9 +128,11 @@ GLuint SceneContext::compileShader(const char* vsrc, const char* fsrc) {
     glCompileShader(fs);
     // Verificação de Erro
     glGetShaderiv(fs, GL_COMPILE_STATUS, &success);
-    if (!success) {
+    if (!success)
+    {
         glGetShaderInfoLog(fs, 512, nullptr, infoLog);
-        std::cerr << "ERRO::SCENE::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+        std::cerr << "ERRO::SCENE::FRAGMENT::COMPILATION_FAILED\n"
+                  << infoLog << std::endl;
     }
 
     // Program Link
@@ -128,9 +142,11 @@ GLuint SceneContext::compileShader(const char* vsrc, const char* fsrc) {
     glLinkProgram(prog);
     // Verificação de Erro de Linkagem
     glGetProgramiv(prog, GL_LINK_STATUS, &success);
-    if (!success) {
+    if (!success)
+    {
         glGetProgramInfoLog(prog, 512, nullptr, infoLog);
-        std::cerr << "ERRO::SCENE::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+        std::cerr << "ERRO::SCENE::PROGRAM::LINKING_FAILED\n"
+                  << infoLog << std::endl;
     }
 
     glDeleteShader(vs);
@@ -138,7 +154,8 @@ GLuint SceneContext::compileShader(const char* vsrc, const char* fsrc) {
     return prog;
 }
 
-void SceneContext::drawGrid(const glm::mat4& view, const glm::mat4& projection) {
+void SceneContext::drawGrid(const glm::mat4 &view, const glm::mat4 &projection)
+{
     glUseProgram(shaderProgram);
     glBindVertexArray(gridVAO);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, &view[0][0]);
@@ -148,7 +165,8 @@ void SceneContext::drawGrid(const glm::mat4& view, const glm::mat4& projection) 
     glUseProgram(0);
 }
 
-void SceneContext::drawGizmo(const glm::mat4& view, const glm::mat4& projection, int screenWidth, int screenHeight) {
+void SceneContext::drawGizmo(const glm::mat4 &view, const glm::mat4 &projection, int screenWidth, int screenHeight)
+{
     // 1. Salvar Viewport atual (da tela cheia)
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
@@ -163,7 +181,7 @@ void SceneContext::drawGizmo(const glm::mat4& view, const glm::mat4& projection,
     // Copiamos a view da câmera mas zeramos a coluna de translação.
     // Assim o gizmo gira junto com a câmera, mas fica fixo na origem do viewport dele.
     glm::mat4 gizmoView = view;
-    gizmoView[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f); 
+    gizmoView[3] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
     // 4. Preparar Matriz de Projeção (Fixa e Quadrada)
     // Usamos aspect ratio 1.0f para o gizmo não distorcer.
@@ -173,13 +191,13 @@ void SceneContext::drawGizmo(const glm::mat4& view, const glm::mat4& projection,
 
     // 5. Configurar Shader e Estados
     glUseProgram(shaderProgram);
-    
+
     // [TRUQUE] Desabilita teste de profundidade para desenhar "na frente" de tudo
     glDisable(GL_DEPTH_TEST);
 
     unsigned int viewLoc = glGetUniformLocation(shaderProgram, "view");
     unsigned int projLoc = glGetUniformLocation(shaderProgram, "projection");
-    
+
     // Passa as matrizes ESPECÍFICAS do Gizmo (não as da cena principal)
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, &gizmoView[0][0]);
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, &gizmoProj[0][0]);
