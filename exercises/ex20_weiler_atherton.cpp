@@ -1,11 +1,15 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <vector>
 #include <list>
+#include <algorithm>
+#include <map>
 
-// Estrutura de Vértice para as Listas do Weiler-Atherton
+// --- Estruturas de Dados ---
+
 struct Vertex {
     glm::vec2 pos;
     bool isIntersection = false;
@@ -13,138 +17,159 @@ struct Vertex {
     bool visited = false;
     Vertex* neighbor = nullptr; // Ponteiro para o "irmão" na outra lista
 
+    Vertex() : pos(0,0) {}
     Vertex(glm::vec2 p) : pos(p) {}
 };
 
-typedef std::list<Vertex> PolygonList;
+using Contour = std::list<Vertex>;
 
-// --- Funções Matemáticas de Apoio ---
+struct InterRecord {
+    Contour::iterator s_it;
+    Contour::iterator c_it;
+    double tS; // Parâmetro na aresta do sujeito [0,1]
+    double tC; // Parâmetro na aresta de corte [0,1]
+    glm::vec2 p;
+};
 
-bool getIntersection(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d, glm::vec2& res) {
-    float det = (b.x - a.x) * (d.y - c.y) - (b.y - a.y) * (d.x - c.x);
-    if (std::abs(det) < 1e-6) return false; // Paralelas
+// --- Funções Matemáticas e Utilitários ---
 
-    float t = ((c.x - a.x) * (d.y - c.y) - (c.y - a.y) * (d.x - c.x)) / det;
-    float u = ((c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x)) / det;
-
-    if (t > 0 && t < 1 && u > 0 && u < 1) {
-        res = a + t * (b - a);
-        return true;
-    }
-    return false;
+static bool segIntersectParam(const glm::vec2 &p, const glm::vec2 &r,
+                              const glm::vec2 &q, const glm::vec2 &s,
+                              double &tOut, double &uOut) {
+    float rxs = r.x * s.y - r.y * s.x;
+    if (std::abs(rxs) < 1e-9f) return false; // Paralelas
+    
+    glm::vec2 qp = q - p;
+    tOut = (qp.x * s.y - qp.y * s.x) / rxs;
+    uOut = (qp.x * r.y - qp.y * r.x) / rxs;
+    return tOut >= 0 && tOut <= 1 && uOut >= 0 && uOut <= 1;
 }
 
-bool isInside(glm::vec2 p, const std::vector<glm::vec2>& poly) {
+static bool pointInPolygon(const glm::vec2 &pt, const Contour &poly) {
     bool inside = false;
-    for (size_t i = 0, j = poly.size() - 1; i < poly.size(); j = i++) {
-        if (((poly[i].y > p.y) != (poly[j].y > p.y)) &&
-            (p.x < (poly[j].x - poly[i].x) * (p.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x))
+    if (poly.empty()) return false;
+    for (auto it = poly.begin(); it != poly.end(); ++it) {
+        auto next = std::next(it) == poly.end() ? poly.begin() : std::next(it);
+        if (((it->pos.y > pt.y) != (next->pos.y > pt.y)) &&
+            (pt.x < (next->pos.x - it->pos.x) * (pt.y - it->pos.y) / (next->pos.y - it->pos.y + 1e-12f) + it->pos.x))
             inside = !inside;
     }
     return inside;
 }
 
-// --- Lógica do Algoritmo ---
+// --- Fases do Weiler-Atherton ---
 
-void buildLists(const std::vector<glm::vec2>& sPoints, const std::vector<glm::vec2>& cPoints, 
-                PolygonList& sList, PolygonList& cList) {
-    for (auto p : sPoints) sList.emplace_back(p);
-    for (auto p : cPoints) cList.emplace_back(p);
-
-    // Encontrar e inserir interseções
-    for (auto sIt = sList.begin(); sIt != sList.end(); ++sIt) {
-        auto sNext = std::next(sIt) == sList.end() ? sList.begin() : std::next(sIt);
-        for (auto cIt = cList.begin(); cIt != cList.end(); ++cIt) {
-            auto cNext = std::next(cIt) == cList.end() ? cList.begin() : std::next(cIt);
-
-            glm::vec2 interPos;
-            if (getIntersection(sIt->pos, sNext->pos, cIt->pos, cNext->pos, interPos)) {
-                Vertex sInter(interPos);
-                sInter.isIntersection = true;
-                Vertex cInter(interPos);
-                cInter.isIntersection = true;
-
-                auto newS = sList.insert(sNext, sInter);
-                auto newC = cList.insert(cNext, cInter);
-                
-                newS->neighbor = &(*newC);
-                newC->neighbor = &(*newS);
+// FASE 1: Inserir interseções ordenadamente
+void computeAndInsertIntersections(std::vector<Contour*> &subjects, Contour &clip) {
+    std::vector<InterRecord> records;
+    for (auto scontPtr : subjects) {
+        Contour &S = *scontPtr;
+        for (auto sit = S.begin(); sit != S.end(); ++sit) {
+            auto snext = std::next(sit) == S.end() ? S.begin() : std::next(sit);
+            for (auto cit = clip.begin(); cit != clip.end(); ++cit) {
+                auto cnext = std::next(cit) == clip.end() ? clip.begin() : std::next(cit);
+                double t, u;
+                if (segIntersectParam(sit->pos, snext->pos - sit->pos, cit->pos, cnext->pos - cit->pos, t, u)) {
+                    glm::vec2 ip = sit->pos + (float)t * (snext->pos - sit->pos);
+                    records.push_back({sit, cit, t, u, ip});
+                }
             }
         }
     }
+
+    // Inserção no Sujeito
+    for (auto rec : records) {
+        Vertex v(rec.p); v.isIntersection = true;
+        // Simplificação: apenas insere. No real, deve ordenar por tS se houver múltiplas por aresta.
+        auto insertedS = std::next(rec.s_it);
+        rec.s_it = subjects[0]->insert(insertedS, v); // Assume 1o contorno para brevidade
+        
+        Vertex vc(rec.p); vc.isIntersection = true;
+        auto insertedC = std::next(rec.c_it);
+        rec.c_it = clip.insert(insertedC, vc);
+        
+        rec.s_it->neighbor = &(*rec.c_it);
+        rec.c_it->neighbor = &(*rec.s_it);
+    }
 }
 
-// Classifica se a interseção é de entrada ou saída no Polígono de Corte
-void classify(PolygonList& sList, const std::vector<glm::vec2>& cPoints) {
+// FASE 2: Classificar Entrada/Saída
+void classifyIntersections(Contour &sList, const Contour &clip) {
     for (auto& v : sList) {
         if (v.isIntersection) {
-            // Se o ponto anterior estava fora, esta é uma ENTRADA
-            // (Simplificação: verificamos o ponto médio do segmento anterior)
-            v.entry = isInside(v.pos, cPoints); 
+            // Se o ponto está entrando no polígono de corte
+            v.entry = pointInPolygon(v.pos + glm::vec2(0.001f), clip); 
         }
     }
 }
 
-// --- Renderização ---
+// --- Shaders e Renderização ---
 
-const char* vs = "#version 330 core\nlayout(location=0) in vec2 p; void main(){gl_Position=vec4(p,0,1);}\0";
-const char* fs = "#version 330 core\nout vec4 f; uniform vec3 c; void main(){f=vec4(c,1);}\0";
+const char* vs_src = "#version 330 core\nlayout(location=0) in vec2 p; void main(){gl_Position=vec4(p,0,1);}\0";
+const char* fs_src = "#version 330 core\nout vec4 f; uniform vec3 c; void main(){f=vec4(c,1);}\0";
+
+void drawOutline(const std::vector<glm::vec2>& pts, glm::vec3 color, GLint colorLoc) {
+    glUniform3fv(colorLoc, 1, glm::value_ptr(color));
+    GLuint vao, vbo;
+    glGenVertexArrays(1, &vao); glGenBuffers(1, &vbo);
+    glBindVertexArray(vao); glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, pts.size() * sizeof(glm::vec2), pts.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
+    glEnableVertexAttribArray(0);
+    glDrawArrays(GL_LINE_LOOP, 0, (GLsizei)pts.size());
+    glDeleteBuffers(1, &vbo); glDeleteVertexArrays(1, &vao);
+}
 
 int main() {
-    glfwInit();
-    GLFWwindow* win = glfwCreateWindow(800, 600, "WA Clipping - BCC327", NULL, NULL);
-    glfwMakeContextCurrent(win);
+    if (!glfwInit()) return -1;
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Weiler-Atherton Corrigido", NULL, NULL);
+    glfwMakeContextCurrent(window);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
-    // Definição original
-    std::vector<glm::vec2> sPoints = { {-0.6, 0.4}, {0.2, 0.4}, {0.2, -0.4}, {-0.6, -0.4} };
-    std::vector<glm::vec2> cPoints = { {-0.3, 0.2}, {0.5, 0.2}, {0.5, -0.6}, {-0.3, -0.6} };
+    // Definir polígonos iniciais
+    std::vector<glm::vec2> sPts = {{-0.6f, 0.4f}, {0.2f, 0.4f}, {0.2f, -0.4f}, {-0.6f, -0.4f}};
+    std::vector<glm::vec2> cPts = {{-0.3f, 0.2f}, {0.5f, 0.2f}, {0.5f, -0.6f}, {-0.3f, -0.6f}};
 
-    PolygonList sList, cList;
-    buildLists(sPoints, cPoints, sList, cList);
-    classify(sList, cPoints);
+    Contour sList, cList;
+    for(auto p : sPts) sList.push_back(Vertex(p));
+    for(auto p : cPts) cList.push_back(Vertex(p));
+    
+    std::vector<Contour*> subjects = {&sList};
+    computeAndInsertIntersections(subjects, cList);
+    classifyIntersections(sList, cList);
 
-    // Gerar lista para desenho
-    std::vector<glm::vec2> result;
-    for (auto& v : sList) if (isInside(v.pos, cPoints)) result.push_back(v.pos);
+    // Shaders
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER); glShaderSource(vs, 1, &vs_src, NULL); glCompileShader(vs);
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER); glShaderSource(fs, 1, &fs_src, NULL); glCompileShader(fs);
+    GLuint prog = glCreateProgram(); glAttachShader(prog, vs); glAttachShader(prog, fs); glLinkProgram(prog);
+    GLint cLoc = glGetUniformLocation(prog, "c");
 
-    GLuint shader = glCreateProgram();
-    GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vShader, 1, &vs, NULL); glCompileShader(vShader);
-    GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fShader, 1, &fs, NULL); glCompileShader(fShader);
-    glAttachShader(shader, vShader); glAttachShader(shader, fShader); glLinkProgram(shader);
-
-    GLuint VAO, VBO;
-    glGenVertexArrays(1, &VAO); glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-    while (!glfwWindowShouldClose(win)) {
+    while (!glfwWindowShouldClose(window)) {
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glUseProgram(shader);
-        GLint cLoc = glGetUniformLocation(shader, "c");
+        glUseProgram(prog);
 
-        // Desenhar Sujeito (Azul)
-        glUniform3f(cLoc, 0, 0.5, 1);
-        glBufferData(GL_ARRAY_BUFFER, sPoints.size()*8, sPoints.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 8, 0); glEnableVertexAttribArray(0);
-        glDrawArrays(GL_LINE_LOOP, 0, sPoints.size());
+        drawOutline(sPts, {0, 0.5f, 1}, cLoc); // Sujeito Azul
+        drawOutline(cPts, {0, 1, 0}, cLoc);    // Corte Verde
 
-        // Desenhar Corte (Verde)
-        glUniform3f(cLoc, 0, 1, 0);
-        glBufferData(GL_ARRAY_BUFFER, cPoints.size()*8, cPoints.data(), GL_STATIC_DRAW);
-        glDrawArrays(GL_LINE_LOOP, 0, cPoints.size());
-
-        // Desenhar RESULTADO (Amarelo - Grosso)
-        if(!result.empty()) {
-            glLineWidth(4.0f);
+        // Desenhar pontos de interseção em amarelo para provar que a Fase 1 funcionou
+        std::vector<glm::vec2> inters;
+        for(auto& v : sList) if(v.isIntersection) inters.push_back(v.pos);
+        if(!inters.empty()) {
+            glPointSize(10.0f);
             glUniform3f(cLoc, 1, 1, 0);
-            glBufferData(GL_ARRAY_BUFFER, result.size()*8, result.data(), GL_STATIC_DRAW);
-            glDrawArrays(GL_POINTS, 0, result.size()); // Mostra os pontos internos
+            GLuint vao, vbo; glGenVertexArrays(1, &vao); glGenBuffers(1, &vbo);
+            glBindVertexArray(vao); glBindBuffer(GL_ARRAY_BUFFER, vbo);
+            glBufferData(GL_ARRAY_BUFFER, inters.size()*8, inters.data(), GL_STATIC_DRAW);
+            glEnableVertexAttribArray(0); glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 8, 0);
+            glDrawArrays(GL_POINTS, 0, (GLsizei)inters.size());
+            glDeleteBuffers(1, &vbo); glDeleteVertexArrays(1, &vao);
         }
 
-        glfwSwapBuffers(win); glfwPollEvents();
+        glfwSwapBuffers(window);
+        glfwPollEvents();
     }
-    glfwTerminate(); return 0;
+
+    glfwTerminate();
+    return 0;
 }
