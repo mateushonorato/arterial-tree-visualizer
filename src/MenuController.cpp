@@ -8,8 +8,11 @@ void MenuController::render(AnimationController& animCtrl, ArterialTree& tree, T
         ImGui::SetNextWindowPos(ImVec2(33, 34), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(598, 697), ImGuiCond_FirstUseEver);
         ImGui::Begin("Menu Principal", nullptr, ImGuiWindowFlags_None);
-        if (ImGui::IsWindowAppearing()) {
+        // Hide menu only on first frame after startup
+        static bool firstFrame = true;
+        if (firstFrame && ImGui::IsWindowAppearing()) {
             ImGui::SetWindowCollapsed(true);
+            firstFrame = false;
         }
 
         // --- Category 1: Modo de Visualização ---
