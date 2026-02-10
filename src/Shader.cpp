@@ -1,7 +1,20 @@
-#include "Shader.hpp"
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: Shader.cpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Implementa utilitários para compilação e uso de programas GLSL.
+ */
+
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include "Shader.hpp"
 
 Shader::Shader(const char *vertexPath, const char *fragmentPath)
 {
@@ -31,19 +44,19 @@ Shader::Shader(const char *vertexPath, const char *fragmentPath)
     unsigned int vertex, fragment;
     int success;
 
-    // Vertex Shader
+    // Shader de vértice
     vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vShaderCode, nullptr);
     glCompileShader(vertex);
     checkCompileErrors(vertex, "VERTEX");
 
-    // Fragment Shader
+    // Shader de fragmento
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShaderCode, nullptr);
     glCompileShader(fragment);
     checkCompileErrors(fragment, "FRAGMENT");
 
-    // Shader Program
+    // Programa de shader
     ID = glCreateProgram();
     glAttachShader(ID, vertex);
     glAttachShader(ID, fragment);

@@ -1,13 +1,25 @@
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: AnimationController.hpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Declara o controlador de animação e estados de reprodução/seleção.
+ */
+
 #pragma once
 
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <glm/glm.hpp>
 #include "VtkReader.hpp"
 #include "TreeRenderer.hpp"
 // Nota: Sem <imgui.h> aqui! Mantendo a lógica pura.
-
-#include <glm/glm.hpp>
 
 struct ClippingBox {
     glm::vec3 min = glm::vec3(-2.0f);
@@ -16,29 +28,29 @@ struct ClippingBox {
 };
 
 class AnimationController {
-    // Camera reset logic
+    // Solicitação para reset de câmera
     bool m_cameraResetRequested = false;
-    // Selection state for picking
+    // Estado de seleção para picking
     int selectedSegmentIndex = -1;
-    // Screenshot request flag
+    // Flag de requisição de screenshot
     bool m_screenshotRequested = false;
 public:
-        // Screenshot request interface
+        // Interface de requisição de screenshot
         void requestScreenshot() { m_screenshotRequested = true; }
         bool isScreenshotRequested() const { return m_screenshotRequested; }
         void resetScreenshotRequest() { m_screenshotRequested = false; }
     ClippingBox clipping;
-            // --- Picking/Selection ---
-            // Set selected segment index (-1 for none)
+            // --- Picking / Seleção ---
+            // Define índice do segmento selecionado (-1 se nenhum)
             void selectSegment(int index, const ArterialTree& tree) {
                 selectedSegmentIndex = index;
                 if (index >= 0 && index < (int)tree.segments.size()) {
                     lastSelectedMidpoint = tree.segments[index].midpoint;
                 }
             }
-            // Get selected segment index (-1 for none)
+            // Retorna índice do segmento selecionado (-1 se nenhum)
             int getSelectedSegment() const { return selectedSegmentIndex; }
-        // Camera reset interface
+        // Interface de reset de câmera
         bool shouldResetCamera() const { return m_cameraResetRequested; }
         void ackCameraReset() { m_cameraResetRequested = false; }
         void requestCameraReset() { m_cameraResetRequested = true; }
@@ -68,13 +80,13 @@ public:
     AnimationController();
     void update(float deltaTime, ArterialTree& tree, TreeRenderer& renderer);
 
-    // Mode switching
+    // Troca de modo
     void setMode2D(ArterialTree* tree = nullptr, TreeRenderer* renderer = nullptr);
     void setMode3D(ArterialTree* tree = nullptr, TreeRenderer* renderer = nullptr);
     void setModeWireframe(ArterialTree* tree = nullptr, TreeRenderer* renderer = nullptr);
     Mode getCurrentMode() const { return currentMode; }
 
-    // Getters e Setters para a UI (MenuController)
+    // Getters e setters para a UI (MenuController)
     const std::vector<std::string>& getAvailableDatasets() const;
     int getCurrentDatasetIndex() const;
     void setDatasetIndex(int index, ArterialTree& tree, TreeRenderer& renderer);
@@ -85,10 +97,10 @@ public:
     void togglePlay();
     float& getSpeedMultiplierRef();
 
-    // Visual state variables
+    // Variáveis de estado visual
     float radiusScale = 1.0f;
-    float lineWidth = 2.0f; // For Wireframe mode (lines)
-    float objectColor[3] = {1.0f, 0.0f, 0.0f}; // Red
+    float lineWidth = 2.0f; // Para modo Wireframe (linhas)
+    float objectColor[3] = {1.0f, 0.0f, 0.0f}; // Vermelho
     float lightPos[3] = {10.0f, 10.0f, 10.0f};
     float transparency = 1.0f;
     int lightingMode = 0; // 0=Phong, 1=Gouraud, 2=Flat
@@ -96,7 +108,7 @@ public:
     bool showGizmo = true;
     bool useOrthographic = false;
     bool m_visualDirty = true;
-    // UI toggle for showing spheres (joints)
+    // Toggle de UI para mostrar esferas (junções)
     bool showSpheres = true;
 
     bool isVisualDirty() const { return m_visualDirty; }

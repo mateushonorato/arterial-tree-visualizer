@@ -1,8 +1,21 @@
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: TreeRenderer.hpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Declara o renderizador da árvore arterial e suas estruturas de vértice.
+ */
+
 #pragma once
 
+#include <vector>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <vector>
 #include "VtkReader.hpp"
 #include "Shader.hpp"
 

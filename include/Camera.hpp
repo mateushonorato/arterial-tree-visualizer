@@ -1,3 +1,17 @@
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: Camera.hpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Declara a classe Camera responsável pela matriz de visualização
+ * e pelo processamento de entrada do mouse (pan/rotate/zoom).
+ */
+
 #pragma once
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>

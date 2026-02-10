@@ -1,7 +1,20 @@
-#include "MenuController.hpp"
-#include <imgui.h>
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: MenuController.cpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Implementa a interface do menu via ImGui.
+ */
+
 #include <vector>
 #include <string>
+#include "imgui.h"
+#include "MenuController.hpp"
 
 void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, TreeRenderer &renderer, bool hideMainPanel)
 {
@@ -10,7 +23,7 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
         ImGui::SetNextWindowPos(ImVec2(33, 34), ImGuiCond_FirstUseEver);
         ImGui::SetNextWindowSize(ImVec2(598, 697), ImGuiCond_FirstUseEver);
         ImGui::Begin("Menu Principal", nullptr, ImGuiWindowFlags_None);
-        // Hide menu only on first frame after startup
+        // Ocultar menu apenas no primeiro frame após inicialização
         static bool firstFrame = true;
         if (firstFrame && ImGui::IsWindowAppearing())
         {
@@ -41,7 +54,7 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
                     modeChanged = true;
                 }
             }
-            // Wireframe checkbox only if 2D is active
+            // Checkbox Wireframe apenas se 2D estiver ativo
             if (animCtrl.getCurrentMode() == AnimationController::Mode2D || animCtrl.getCurrentMode() == AnimationController::ModeWireframe)
             {
                 ImGui::SameLine();
@@ -96,11 +109,10 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
                 animCtrl.setFrameIndex(currentFrame, tree, renderer);
                 animChanged = true;
             }
-            // Play/Pause button only
+            // Play/Pause button only (keyboard shortcut handled globally below)
             ImGui::SameLine();
             bool playPauseClicked = ImGui::Button(animCtrl.isPlaying() ? "Pause ||" : "Play >");
-            bool spacePressed = ImGui::IsKeyPressed(ImGuiKey_Space);
-            if (playPauseClicked || spacePressed)
+            if (playPauseClicked)
             {
                 animCtrl.togglePlay();
                 animChanged = true;
@@ -118,8 +130,8 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
                 animCtrl.getSpeedMultiplierRef() = 1.0f;
                 animChanged = true;
             }
-            // Timeline visualization (keep existing logic if any)
-            // ...existing timeline visualization code...
+            // Visualização da timeline (manter lógica existente se houver)
+            // ...código existente de visualização da timeline...
             if (animChanged)
                 animCtrl.m_visualDirty = true;
         }
@@ -294,6 +306,8 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
         }
         ImGui::End();
     }
+
+    // Note: global keyboard shortcuts are handled in the main loop.
 
     int selIdx = animCtrl.getSelectedSegment();
     if (selIdx != -1 && selIdx < (int)tree.segments.size())

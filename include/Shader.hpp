@@ -1,9 +1,21 @@
-#ifndef SHADER_HPP
-#define SHADER_HPP
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: Shader.hpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Declara a classe Shader para compilação e uso de programas GLSL.
+ */
 
+#pragma once
+
+#include <string>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
-#include <string>
 
 class Shader
 {
@@ -23,4 +35,4 @@ private:
     void checkCompileErrors(unsigned int shader, const std::string &type) const;
 };
 
-#endif // SHADER_HPP
+// fim do arquivo

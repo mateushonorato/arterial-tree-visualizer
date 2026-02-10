@@ -1,26 +1,40 @@
-#include "ClippingUtils.hpp"
-#include "MenuController.hpp"
-#include "AnimationController.hpp"
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: main.cpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Inicialização da aplicação, loop principal e callbacks GLFW.
+ */
+
+#include <iostream>
+
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <iostream>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "AnimationController.hpp"
+#include "MenuController.hpp"
+#include "ClippingUtils.hpp"
 #include "VtkReader.hpp"
 #include "Shader.hpp"
 #include "TreeRenderer.hpp"
 #include "SceneContext.hpp"
 #include "ScreenshotUtils.hpp"
-
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 #include "Camera.hpp"
 #include "PickingUtils.hpp"
 
-// Global camera instance
+// Instância global de câmera
 Camera camera;
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
@@ -28,7 +42,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-// Forward declarations for access
+// Declarações externas para acesso
 extern AnimationController animCtrl;
 extern ArterialTree tree;
 extern SceneContext sceneCtx;
@@ -172,7 +186,7 @@ int main()
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         return -1;
 
-    // Cursor feedback for panning
+    // Cursor para indicar pan
     GLFWcursor *handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     GLFWcursor *arrowCursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
 
@@ -242,7 +256,7 @@ int main()
             projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
         }
 
-        // 4. Cursor feedback for panning
+        // 4. Cursor para indicar pan
         bool isPanning = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
         glfwSetCursor(window, isPanning ? handCursor : arrowCursor);
 
@@ -312,6 +326,14 @@ int main()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        // Global keyboard shortcuts (processed even when the main menu is collapsed/hidden)
+        // Respect ImGui's keyboard capture so we don't interfere with text input widgets.
+        ImGuiIO &io = ImGui::GetIO();
+        if (!io.WantCaptureKeyboard && ImGui::IsKeyPressed(ImGuiKey_Space))
+        {
+            animCtrl.togglePlay();
+            animCtrl.m_visualDirty = true;
+        }
         menuCtrl.render(animCtrl, tree, renderer, isSnapshot);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -1,7 +1,20 @@
-#include "Camera.hpp"
-#include <glm/gtc/matrix_transform.hpp>
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: Camera.cpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Implementa a câmera orbital com suporte a rotação, pan e zoom.
+ */
+
 #include <algorithm>
 #include <cmath>
+#include <glm/gtc/matrix_transform.hpp>
+#include "Camera.hpp"
 
 Camera::Camera()
 {
@@ -38,7 +51,7 @@ void Camera::processMousePan(float xoffset, float yoffset)
     // Ajuste fino da velocidade (sensibilidade)
     float velocity = sensitivity * distance * 0.001f;
 
-    // Direct Manipulation: Arrastar para Direita (x+) move objeto para Direita (x+)
+    // Manipulação direta: Arrastar para Direita (x+) move objeto para Direita (x+)
     panOffset.x += xoffset * velocity;
 
     // Arrastar para Cima (y+) move objeto para Cima (y+)

@@ -16,25 +16,25 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/imgui)
 include_directories(${CMAKE_SOURCE_DIR}/lib/imgui/backends)
 
 set(SOURCES
-    src/main.cpp
-    src/glad.cpp
-    src/VtkReader.cpp
-    src/Shader.cpp
-    src/TreeRenderer.cpp
-    src/AnimationController.cpp
-    src/MenuController.cpp
-    src/SceneContext.cpp
-    src/PickingUtils.cpp
-    src/ScreenshotUtils.cpp
-    src/lodepng.cpp
-    lib/imgui/imgui.cpp
+    lib/imgui/backends/imgui_impl_glfw.cpp
+    lib/imgui/backends/imgui_impl_opengl3.cpp
     lib/imgui/imgui_draw.cpp
     lib/imgui/imgui_tables.cpp
     lib/imgui/imgui_widgets.cpp
-    lib/imgui/backends/imgui_impl_glfw.cpp
-    lib/imgui/backends/imgui_impl_opengl3.cpp
+    lib/imgui/imgui.cpp
+    src/AnimationController.cpp
     src/Camera.cpp
     src/ClippingUtils.cpp
+    src/glad.cpp
+    src/lodepng.cpp
+    src/main.cpp
+    src/MenuController.cpp
+    src/PickingUtils.cpp
+    src/SceneContext.cpp
+    src/ScreenshotUtils.cpp
+    src/Shader.cpp
+    src/TreeRenderer.cpp
+    src/VtkReader.cpp
 )
 
 add_executable(ArterialVis ${SOURCES})

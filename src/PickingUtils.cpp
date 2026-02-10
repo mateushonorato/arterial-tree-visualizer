@@ -1,6 +1,22 @@
-#include "PickingUtils.hpp"
-#include <glm/gtc/matrix_transform.hpp> // Necessário para unProject
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: PickingUtils.cpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Implementa utilitários de picking por raio (unProject + interseção).
+ */
+
 #include <algorithm>
+#include <glm/gtc/matrix_transform.hpp> // Necessário para unProject
+#include "PickingUtils.hpp"
+
+// Implementação de Ray Casting utilizando a inversão das matrizes de Projeção
+// e View (glm::unProject).
 
 namespace PickingUtils
 {

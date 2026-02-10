@@ -1,10 +1,21 @@
-#ifndef SCENE_CONTEXT_HPP
-#define SCENE_CONTEXT_HPP
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: SceneContext.hpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Declara o contexto da cena responsável pela criação e desenho
+ * da grade (grid) e do gizmo de orientação.
+ */
+
+#pragma once
 
 #include <glm/glm.hpp>
 #include <glad/glad.h>
-#include <vector>
-#include <string>
 
 class SceneContext
 {
@@ -25,4 +36,4 @@ private:
     GLuint compileShader(const char *vsrc, const char *fsrc);
 };
 
-#endif // SCENE_CONTEXT_HPP
+// fim do arquivo

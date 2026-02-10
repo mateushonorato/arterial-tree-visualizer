@@ -1,8 +1,21 @@
-#include "SceneContext.hpp"
-#include <glm/gtc/matrix_transform.hpp>
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: SceneContext.cpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Implementa utilitários para desenhar grade (grid) e gizmo de orientação.
+ */
+
 #include <vector>
 #include <array>
 #include <iostream>
+#include <glm/gtc/matrix_transform.hpp>
+#include "SceneContext.hpp"
 
 static const char *gridVertexShader = R"(
 #version 330 core
@@ -52,7 +65,7 @@ void SceneContext::createGridLines()
 {
     std::vector<float> gridVerts;
     float min = -10.0f, max = 10.0f;
-    int N = 21; // 21 lines per axis
+    int N = 21; // 21 linhas por eixo
     float colorMajor[3] = {0.5f, 0.5f, 0.5f};
     float colorMinor[3] = {0.3f, 0.3f, 0.3f};
     for (int i = 0; i < N; ++i)
@@ -65,7 +78,7 @@ void SceneContext::createGridLines()
         gridVerts.insert(gridVerts.end(), {min, 0, x, colorMinor[0], colorMinor[1], colorMinor[2]});
         gridVerts.insert(gridVerts.end(), {max, 0, x, colorMinor[0], colorMinor[1], colorMinor[2]});
     }
-    // Major axes (darker)
+    // Eixos principais (mais escuros)
     gridVerts.insert(gridVerts.end(), {min, 0, 0, colorMajor[0], colorMajor[1], colorMajor[2]});
     gridVerts.insert(gridVerts.end(), {max, 0, 0, colorMajor[0], colorMajor[1], colorMajor[2]});
     gridVerts.insert(gridVerts.end(), {0, 0, min, colorMajor[0], colorMajor[1], colorMajor[2]});

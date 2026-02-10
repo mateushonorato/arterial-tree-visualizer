@@ -1,4 +1,20 @@
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: ClippingUtils.cpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Implementa utilitários para recorte de segmentos (Liang-Barsky).
+ */
+
 #include "ClippingUtils.hpp"
+
+// Implementação do Algoritmo de Liang-Barsky para recorte de segmentos de reta,
+// conforme detalhado na Aula 17 da disciplina.
 
 bool ClippingUtils::clipSegment(glm::vec3 &p0, glm::vec3 &p1, const glm::vec3 &boxMin, const glm::vec3 &boxMax)
 {
@@ -34,7 +50,7 @@ bool ClippingUtils::clipSegment(glm::vec3 &p0, glm::vec3 &p1, const glm::vec3 &b
         }
         else
         {
-            // Parallel to axis: outside if not within bounds
+            // Paralelo ao eixo: fora se não estiver dentro dos limites
             if (q0 < min || q0 > max)
                 return false;
         }

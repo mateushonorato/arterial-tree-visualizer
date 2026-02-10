@@ -1,13 +1,34 @@
-#include "ClippingUtils.hpp"
-// Modern OpenGL line rendering for Wireframe mode
-#include "TreeRenderer.hpp"
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: TreeRenderer.cpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Implementa o renderizador da árvore arterial (malhas e wireframe).
+ */
+
 #include <vector>
+#include <cmath>
+#include <algorithm>
+#include <limits>
+#include <map>
 #include <glm/glm.hpp>
+
+#include "TreeRenderer.hpp"
+#include "ClippingUtils.hpp"
+#include "Shader.hpp"
+
+// Pipeline programável (Modern OpenGL). Implementa modelos de iluminação
+// de Phong e Gouraud via GLSL.
 
 void TreeRenderer::initWireframe(const std::vector<ArterialNode> &nodes, const std::vector<ArterialSegment> &segments,
                                  bool clipEnabled, glm::vec3 clipMin, glm::vec3 clipMax)
 {
-    // Clean up previous buffer if needed
+    // Liberar buffers anteriores se necessário
     if (wireframeBuf.vbo)
         glDeleteBuffers(1, &wireframeBuf.vbo);
     if (wireframeBuf.vao)
@@ -16,7 +37,7 @@ void TreeRenderer::initWireframe(const std::vector<ArterialNode> &nodes, const s
     wireframeBuf.vao = 0;
     wireframeBuf.vertexCount = 0;
 
-    // 1. Find min/max radius
+    // 1. Encontrar raio mínimo/máximo
     float minRadius = std::numeric_limits<float>::max();
     float maxRadius = -std::numeric_limits<float>::max();
     for (const auto &seg : segments)
@@ -25,7 +46,7 @@ void TreeRenderer::initWireframe(const std::vector<ArterialNode> &nodes, const s
         maxRadius = std::max(maxRadius, seg.radius);
     }
 
-    // 2. Interleaved buffer: position (vec3), color (vec3), segmentID (int)
+    // 2. Buffer intercalado: posição (vec3), cor (vec3), segmentID (int)
     struct WireframeVertex
     {
         glm::vec3 pos;
@@ -82,12 +103,6 @@ void TreeRenderer::drawWireframe(Shader &shader, const glm::mat4 &view, const gl
     glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(wireframeBuf.vertexCount));
     glBindVertexArray(0);
 }
-#include "TreeRenderer.hpp"
-#include <vector>
-#include <cmath>
-#include <algorithm>
-#include <limits>
-#include <map>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

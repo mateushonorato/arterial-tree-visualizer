@@ -1,10 +1,23 @@
-#include "VtkReader.hpp"
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: VtkReader.cpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Implementa leitor simples de arquivos VTK contendo nós e segmentos arteriais.
+ */
+
 #include <fstream>
 #include <sstream>
-#include <algorithm>
 #include <iostream>
+#include <algorithm>
 #include <cmath>
 #include <limits>
+#include "VtkReader.hpp"
 
 bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
 {
@@ -52,7 +65,6 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
                     std::cerr << "[VTKReader] POINTS section has zero points." << std::endl;
                     return false;
                 }
-                std::cout << "[DEBUG] Reading Points... (" << numPoints << ")" << std::endl;
                 state = POINTS;
                 pointsRead = 0;
                 continue;
@@ -84,7 +96,6 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
                 std::cerr << "[VTKReader] LINES section has zero lines." << std::endl;
                 return false;
             }
-            std::cout << "[DEBUG] Reading Lines... (" << numLines << ")" << std::endl;
             tempSegments.clear();
             linesRead = 0;
             state = LINES;
@@ -113,7 +124,7 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
             }
             continue;
         }
-        // Accept both SCALARS and scalars, and both radius and raio
+        // Aceitar tanto SCALARS quanto scalars, e tanto radius quanto raio
         if (state == SEEK && keyword_upper == "SCALARS")
         {
             std::string name, type;
@@ -122,7 +133,6 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
             std::transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
             if (name_lower == "radius" || name_lower == "raio")
             {
-                std::cout << "[DEBUG] Reading Radii..." << std::endl;
                 state = SCALARS;
             }
             continue;

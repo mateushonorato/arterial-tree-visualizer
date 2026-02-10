@@ -1,7 +1,20 @@
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: AnimationController.cpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Implementa o controlador de animação: carregamento de frames,
+ * gerenciamento de playlist e controle de reprodução.
+ */
 
-#include "AnimationController.hpp"
 #include <algorithm>
 #include <iostream>
+#include "AnimationController.hpp"
 
 void AnimationController::setModeWireframe(ArterialTree *tree, TreeRenderer *renderer)
 {
@@ -31,7 +44,7 @@ AnimationController::AnimationController()
     setMode2D();
     requestCameraReset();
 }
-// --- Mode switching ---
+// --- Troca de modos ---
 void AnimationController::setMode2D(ArterialTree *tree, TreeRenderer *renderer)
 {
     currentMode = Mode2D;
@@ -118,7 +131,7 @@ void AnimationController::loadCurrentFrame(ArterialTree &tree, TreeRenderer &ren
     {
         if (!VtkReader::load(currentPlaylist[currentFrameIndex], tree))
         {
-            std::cerr << "Failed to load frame: " << currentPlaylist[currentFrameIndex] << std::endl;
+            std::cerr << "Falha ao carregar frame: " << currentPlaylist[currentFrameIndex] << std::endl;
         }
         else
         {

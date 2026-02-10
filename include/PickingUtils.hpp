@@ -1,11 +1,23 @@
-#ifndef PICKING_UTILS_HPP
-#define PICKING_UTILS_HPP
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: PickingUtils.hpp
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Declara funções utilitárias para seleção por raio (picking).
+ */
+
+#pragma once
 
 #include <glm/glm.hpp>
 
 namespace PickingUtils
 {
-    // Calcula Origem e Direção corretas para Perspectiva E Ortográfica
+    // Calcula origem e direção do raio (perspectiva e ortográfica)
     void getRayFromMouse(
         double mouseX, double mouseY,
         int screenW, int screenH,
@@ -22,5 +34,3 @@ namespace PickingUtils
         float segRadius,
         float &outDist);
 }
-
-#endif // PICKING_UTILS_HPP
