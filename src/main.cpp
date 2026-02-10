@@ -332,6 +332,11 @@ int main()
             animCtrl.togglePlay();
             animCtrl.m_visualDirty = true;
         }
+        // Atalho: 'P' para capturar screenshot (respeita captura do ImGui)
+        if (!io.WantCaptureKeyboard && ImGui::IsKeyPressed(ImGuiKey_P))
+        {
+            animCtrl.requestScreenshot();
+        }
         menuCtrl.render(animCtrl, tree, renderer, isSnapshot);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
