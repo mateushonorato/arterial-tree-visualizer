@@ -1924,7 +1924,7 @@ external method to handle such files and encode or decode in-memory
 10.1. decoder C++ example
 -------------------------
 
-#include "lodepng.h"
+#include "lodepng.hpp"
 #include <iostream>
 
 int main(int argc, char *argv[]) {

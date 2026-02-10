@@ -1,5 +1,5 @@
 #include "ScreenshotUtils.hpp"
-#include "lodepng.h"
+#include "lodepng.hpp"
 #include <vector>
 #include <glad/glad.h>
 #include <ctime>
