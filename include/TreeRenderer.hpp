@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include "VtkReader.hpp"
-#include "shader.hpp"
+#include "Shader.hpp"
 
 struct Vertex {
     glm::vec3 pos;

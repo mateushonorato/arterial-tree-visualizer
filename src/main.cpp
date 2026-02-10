@@ -9,7 +9,7 @@
 #include <iostream>
 
 #include "VtkReader.hpp"
-#include "shader.hpp"
+#include "Shader.hpp"
 #include "TreeRenderer.hpp"
 #include "SceneContext.hpp"
 #include "ScreenshotUtils.hpp"

@@ -17,9 +17,9 @@ include_directories(${CMAKE_SOURCE_DIR}/lib/imgui/backends)
 
 set(SOURCES
     src/main.cpp
-    src/glad.c
+    src/glad.cpp
     src/VtkReader.cpp
-    src/shader.cpp
+    src/Shader.cpp
     src/TreeRenderer.cpp
     src/AnimationController.cpp
     src/MenuController.cpp
