@@ -36,4 +36,3 @@ private:
     GLuint compileShader(const char *vsrc, const char *fsrc);
 };
 
-// fim do arquivo

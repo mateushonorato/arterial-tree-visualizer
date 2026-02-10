@@ -9,6 +9,10 @@
  * Data: Fevereiro/2026
  * Descrição:
  * Implementa a câmera orbital com suporte a rotação, pan e zoom.
+ *
+ * Créditos:
+ * A lógica de processamento de mouse (Euler Angles: Yaw/Pitch) e movimentação
+ * foi adaptada da classe 'Camera' do tutorial LearnOpenGL.com (Joey de Vries).
  */
 
 #include <algorithm>
@@ -25,6 +29,10 @@ Camera::Camera()
 
 glm::vec3 Camera::getPosition() const
 {
+    // Converte ângulos esféricos (yaw, pitch) para coordenadas cartesianas.
+    // `yaw` é a rotação em torno do eixo Y e `pitch` inclina acima/abaixo;
+    // usando seno e cosseno obtemos a posição no espaço 3D a partir da
+    // distância radial (radius = distance).
     float yawRad = glm::radians(yaw);
     float pitchRad = glm::radians(pitch);
     float x = distance * cosf(pitchRad) * cosf(yawRad);

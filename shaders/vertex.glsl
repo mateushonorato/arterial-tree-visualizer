@@ -1,4 +1,19 @@
 #version 330 core
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: vertex.glsl
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Vertex shader para renderização das malhas com suporte a Phong/Gouraud/Flat.
+ *
+ * Créditos:
+ * Implementação baseada no modelo de iluminação de Phong do LearnOpenGL.com.
+ */
 
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;

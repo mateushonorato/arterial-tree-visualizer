@@ -1,4 +1,20 @@
 #version 330 core
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: fragment.glsl
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Fragment shader para modelos de iluminação Phong/Gouraud/Flat e
+ * destaque de segmentos selecionados.
+ *
+ * Créditos:
+ * Implementação baseada no modelo de iluminação de Phong do LearnOpenGL.com.
+ */
 
 in vec3 FragPos;
 in vec3 Normal;

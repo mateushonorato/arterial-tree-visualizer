@@ -97,7 +97,7 @@ void AnimationController::refreshDatasets(ArterialTree *tree, TreeRenderer *rend
         }
         if (renderer && tree)
         {
-            renderer->init(*tree); // Reinitialize with empty tree
+            renderer->init(*tree); // Reinicializa com árvore vazia
         }
     }
 }
@@ -145,7 +145,7 @@ void AnimationController::loadCurrentFrame(ArterialTree &tree, TreeRenderer &ren
                 renderer.init(tree, radiusScale, showSpheres,
                               clipping.enabled, clipping.min, clipping.max);
             }
-            // Restore persistent selection if lastSelectedMidpoint is valid
+            // Restaura seleção persistente se `lastSelectedMidpoint` for válido
             if (selectedSegmentIndex != -1 && tree.segments.size() > 0)
             {
                 float minDist = std::numeric_limits<float>::max();
@@ -174,7 +174,7 @@ void AnimationController::update(float deltaTime, ArterialTree &tree, TreeRender
     }
 
     const float baseDelay = 0.1f;
-    // Usa m_isPlaying aqui
+    // Controla reprodução com `m_isPlaying`
     if (m_isPlaying && !currentPlaylist.empty())
     {
         float timePerFrame = baseDelay / speedMultiplier;

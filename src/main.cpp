@@ -11,17 +11,15 @@
  * Inicialização da aplicação, loop principal e callbacks GLFW.
  */
 
-#include <iostream>
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
 
 #include "AnimationController.hpp"
 #include "MenuController.hpp"
@@ -153,7 +151,7 @@ void processInput(GLFWwindow *window)
         glfwSetWindowShouldClose(window, true);
 }
 
-// Global for picking callback access
+// Variáveis globais usadas pelos callbacks (picking, UI, etc.)
 AnimationController animCtrl;
 ArterialTree tree;
 SceneContext sceneCtx;
@@ -162,7 +160,7 @@ glm::mat4 projection;
 
 int main()
 {
-    // 1. Inicialização do GLFW
+    // Inicialização do GLFW
     if (!glfwInit())
         return -1;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -182,7 +180,7 @@ int main()
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    // 2. Inicialização do GLAD
+    // Inicialização do GLAD
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         return -1;
 
@@ -190,7 +188,7 @@ int main()
     GLFWcursor *handCursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     GLFWcursor *arrowCursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
 
-    // 3. Inicialização do ImGui
+    // Inicialização do ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
@@ -205,7 +203,7 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // 4. Objetos do Domínio
+    // Objetos do Domínio
 
     Shader shader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
     Shader lineShader("../shaders/line_vertex.glsl", "../shaders/line_fragment.glsl");
@@ -217,28 +215,28 @@ int main()
 
     double lastTime = glfwGetTime();
 
-    // 6. Loop Principal
+    // Loop Principal
 
     while (!glfwWindowShouldClose(window))
     {
-        // --- SCREENSHOT LOGIC ---
+        // Lógica de captura de tela
         bool isSnapshot = animCtrl.isScreenshotRequested();
 
-        // 1. Clear color (transparent for screenshot, normal otherwise)
+        // Limpar buffer de cor (transparente para screenshot, normal caso contrário)
         if (isSnapshot)
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         else
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // 2. Animation logic
+        // Lógica de animação
         double currentTime = glfwGetTime();
         float deltaTime = static_cast<float>(currentTime - lastTime);
         lastTime = currentTime;
         processInput(window);
         animCtrl.update(deltaTime, tree, renderer);
 
-        // 3. Update aspect ratio and view/projection
+        // Atualiza razão de aspecto e matrizes de view/projection
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
@@ -256,11 +254,11 @@ int main()
             projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
         }
 
-        // 4. Cursor para indicar pan
+        // Cursor para indicar pan
         bool isPanning = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
         glfwSetCursor(window, isPanning ? handCursor : arrowCursor);
 
-        // 5. Visual update if needed
+        // Atualização visual quando necessário
         if (animCtrl.isVisualDirty())
         {
             if (animCtrl.getCurrentMode() == AnimationController::ModeWireframe)
@@ -282,7 +280,7 @@ int main()
             animCtrl.resetVisualDirty();
         }
 
-        // 6. Set shader uniforms and draw scene
+        // Configurar uniforms do shader e desenhar a cena
         glm::mat4 model = glm::mat4(1.0f);
         if (animCtrl.getCurrentMode() == AnimationController::Mode3D)
         {
@@ -312,7 +310,7 @@ int main()
             renderer.draw(shader, view, projection, model, animCtrl.getSelectedSegment());
         }
 
-        // 7. Draw grid and gizmo
+        // Desenhar grade (grid) e gizmo
         if (animCtrl.showGrid)
         {
             sceneCtx.drawGrid(view, projection);
@@ -322,12 +320,12 @@ int main()
             sceneCtx.drawGizmo(view, projection, width, height);
         }
 
-        // 8. Render UI (hide main menu if snapshot)
+        // Renderizar UI (ocultar menu principal se for snapshot)
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-        // Global keyboard shortcuts (processed even when the main menu is collapsed/hidden)
-        // Respect ImGui's keyboard capture so we don't interfere with text input widgets.
+        // Atalhos globais de teclado (processados mesmo quando o menu principal está colapsado/oculto)
+        // Respeita captura de teclado do ImGui para não interferir em widgets de texto.
         ImGuiIO &io = ImGui::GetIO();
         if (!io.WantCaptureKeyboard && ImGui::IsKeyPressed(ImGuiKey_Space))
         {
@@ -338,19 +336,19 @@ int main()
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        // 9. Screenshot capture (before swap)
+        // Captura de screenshot (antes do swap)
         if (isSnapshot)
         {
             ScreenshotUtils::saveScreenshot(width, height);
             animCtrl.resetScreenshotRequest();
         }
 
-        // 10. Swap and poll
+        // Troca de buffers (swap) e poll de eventos
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    // Cleanup
+    // Limpeza de recursos
     glfwDestroyCursor(handCursor);
     glfwDestroyCursor(arrowCursor);
     ImGui_ImplOpenGL3_Shutdown();

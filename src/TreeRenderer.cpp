@@ -9,6 +9,10 @@
  * Data: Fevereiro/2026
  * Descrição:
  * Implementa o renderizador da árvore arterial (malhas e wireframe).
+ *
+ * Créditos:
+ * Baseado em documentação técnica da biblioteca GLM para operações vetoriais
+ * e transformações matriciais.
  */
 
 #include <vector>
@@ -22,8 +26,8 @@
 #include "ClippingUtils.hpp"
 #include "Shader.hpp"
 
-// Pipeline programável (Modern OpenGL). Implementa modelos de iluminação
-// de Phong e Gouraud via GLSL.
+// Pipeline programável (OpenGL moderno). Implementa modelos de iluminação
+// Phong e Gouraud via GLSL.
 
 void TreeRenderer::initWireframe(const std::vector<ArterialNode> &nodes, const std::vector<ArterialSegment> &segments,
                                  bool clipEnabled, glm::vec3 clipMin, glm::vec3 clipMax)
@@ -170,6 +174,9 @@ void TreeRenderer::generateSphere(const glm::vec3 &center, float radius, const g
             float xSegment = (float)x / (float)X_SEGMENTS;
             float ySegment = (float)y / (float)Y_SEGMENTS;
 
+            // Parametrização esférica: mapeia (xSegment,ySegment) em ângulos
+            // longitudinais e polares para produzir uma normal unitária na
+            // esfera. Multiplicando pela `radius` obtemos a posição na superfície.
             float xPos = std::cos(xSegment * 2.0f * (float)M_PI) * std::sin(ySegment * (float)M_PI);
             float yPos = std::cos(ySegment * (float)M_PI);
             float zPos = std::sin(xSegment * 2.0f * (float)M_PI) * std::sin(ySegment * (float)M_PI);
@@ -207,6 +214,11 @@ void TreeRenderer::generateCylinder(const glm::vec3 &a, const glm::vec3 &b, floa
     const int segments = 32;
 
     glm::vec3 axis = glm::normalize(b - a);
+    // Constroi uma base ortonormal ao longo do eixo do cilindro.
+    // `axis` é o vetor diretor do cilindro; escolhemos um vetor `up`
+    // provisório e usamos produto vetorial para obter vetores
+    // perpendiculares (`side` e `ortho`) que definem o plano da
+    // seção transversal do cilindro.
     glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
     if (glm::abs(glm::dot(axis, up)) > 0.99f)
         up = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -223,6 +235,9 @@ void TreeRenderer::generateCylinder(const glm::vec3 &a, const glm::vec3 &b, floa
         float y = sinf(theta);
 
         glm::vec3 dirVec = side * x + ortho * y;
+        // `dirVec` descreve um vetor radial no plano ortogonal ao eixo.
+        // Normalizamos para obter a normal da superfície do cilindro
+        // naquele ponto, usada para iluminação (shading).
         glm::vec3 normal = glm::normalize(dirVec);
 
         // Base (Ponto A)

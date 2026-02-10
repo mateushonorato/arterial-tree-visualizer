@@ -1,4 +1,16 @@
 #version 330 core
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Visualizador de Árvores Arteriais (CCO)
+ * Arquivo: line_vertex.glsl
+ * Autor: Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Vertex shader simplificado para renderização de linhas (wireframe).
+ */
 
 layout (location = 0) in vec3 aPos;
 layout (location = 2) in vec3 aColor;

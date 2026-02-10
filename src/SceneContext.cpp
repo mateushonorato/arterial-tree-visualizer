@@ -99,11 +99,11 @@ void SceneContext::createGridLines()
 void SceneContext::createGizmoAxes()
 {
     float axes[] = {
-        // X axis (red)
+        // Eixo X (vermelho)
         0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0,
-        // Y axis (green)
+        // Eixo Y (verde)
         0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0,
-        // Z axis (blue)
+        // Eixo Z (azul)
         0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1};
     glGenVertexArrays(1, &gizmoVAO);
     glGenBuffers(1, &gizmoVBO);
@@ -148,7 +148,7 @@ GLuint SceneContext::compileShader(const char *vsrc, const char *fsrc)
                   << infoLog << std::endl;
     }
 
-    // Program Link
+    // Linkagem do Programa
     GLuint prog = glCreateProgram();
     glAttachShader(prog, vs);
     glAttachShader(prog, fs);

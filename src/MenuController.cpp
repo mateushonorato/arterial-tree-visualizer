@@ -31,7 +31,7 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
             firstFrame = false;
         }
 
-        // --- Category 1: Modo de Visualização ---
+        // --- Categoria 1: Modo de Visualização ---
         if (ImGui::CollapsingHeader("Modo de Visualização", ImGuiTreeNodeFlags_DefaultOpen))
         {
             bool modeChanged = false; // Flag para marcar se houve mudança que requer atualização
@@ -96,11 +96,11 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
             }
         }
 
-        // --- Category 2: Animação ---
+        // --- Categoria 2: Animação ---
         if (ImGui::CollapsingHeader("Animação", ImGuiTreeNodeFlags_DefaultOpen))
         {
             bool animChanged = false;
-            // Frame slider
+            // Slider de frames
             int currentFrame = animCtrl.getCurrentFrameIndex();
             int totalFrames = animCtrl.getTotalFrames();
             int maxFrame = (totalFrames > 0) ? totalFrames - 1 : 0;
@@ -109,7 +109,7 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
                 animCtrl.setFrameIndex(currentFrame, tree, renderer);
                 animChanged = true;
             }
-            // Play/Pause button only (keyboard shortcut handled globally below)
+            // Botão Play/Pause (atalhos de teclado são tratados globalmente abaixo)
             ImGui::SameLine();
             bool playPauseClicked = ImGui::Button(animCtrl.isPlaying() ? "Pause ||" : "Play >");
             if (playPauseClicked)
@@ -117,7 +117,7 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
                 animCtrl.togglePlay();
                 animChanged = true;
             }
-            // Speed slider
+            // Slider de velocidade
             float speed = animCtrl.getSpeedMultiplierRef();
             if (ImGui::SliderFloat("Velocidade ", &speed, 0.1f, 5.0f))
             {
@@ -130,13 +130,13 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
                 animCtrl.getSpeedMultiplierRef() = 1.0f;
                 animChanged = true;
             }
-            // Visualização da timeline (manter lógica existente se houver)
+            // Visualização da timeline (mantém lógica existente)
             // ...código existente de visualização da timeline...
             if (animChanged)
                 animCtrl.m_visualDirty = true;
         }
 
-        // --- Category 3: Ajustes Visuais ---
+        // --- Categoria 3: Ajustes Visuais ---
         if (ImGui::CollapsingHeader("Ajustes Visuais", ImGuiTreeNodeFlags_DefaultOpen))
         {
             bool visualChanged = false;
@@ -181,13 +181,13 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
                 animCtrl.m_visualDirty = true;
         }
 
-        // --- Category 4: Iluminação ---
+        // --- Categoria 4: Iluminação ---
         if (animCtrl.getCurrentMode() != AnimationController::ModeWireframe)
         {
             if (ImGui::CollapsingHeader("Iluminação", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 bool lightChanged = false;
-                // Radio buttons
+                // Botões de opção
                 ImGui::TextUnformatted("Modelo de Iluminação:                                        ");
                 ImGui::SameLine();
                 if (ImGui::Button("Resetar Todos##ilum"))
@@ -214,7 +214,7 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
                     animCtrl.lightingMode = 2;
                     lightChanged = true;
                 }
-                // Sliders for light position with Reset buttons
+                // Sliders para posição da luz com botões de Reset
                 lightChanged |= ImGui::SliderFloat("Luz X", &animCtrl.lightPos[0], -20.0f, 20.0f);
                 ImGui::SameLine();
                 if (ImGui::Button("Reset##luzx"))
@@ -241,7 +241,7 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
             }
         }
 
-        // --- Category 5: Ferramentas de Corte ---
+        // --- Categoria 5: Ferramentas de Corte ---
         if (ImGui::CollapsingHeader("Ferramentas de Corte", ImGuiTreeNodeFlags_DefaultOpen))
         {
             bool clipChanged = false;
@@ -300,14 +300,13 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
 
         // --- Footer: Salvar PNG ---
         ImGui::Separator();
-        if (ImGui::Button("Salvar PNG (Transparente)"))
+        if (ImGui::Button("Salvar PNG"))
         {
             animCtrl.requestScreenshot();
         }
         ImGui::End();
     }
 
-    // Note: global keyboard shortcuts are handled in the main loop.
 
     int selIdx = animCtrl.getSelectedSegment();
     if (selIdx != -1 && selIdx < (int)tree.segments.size())

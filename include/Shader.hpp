@@ -9,6 +9,10 @@
  * Data: Fevereiro/2026
  * Descrição:
  * Declara a classe Shader para compilação e uso de programas GLSL.
+ *
+ * Créditos:
+ * Estrutura da classe (leitura de arquivos/streams e tratamento de erros)
+ * baseada na implementação padrão sugerida pelo tutorial LearnOpenGL.com.
  */
 
 #pragma once
@@ -35,4 +39,3 @@ private:
     void checkCompileErrors(unsigned int shader, const std::string &type) const;
 };
 
-// fim do arquivo

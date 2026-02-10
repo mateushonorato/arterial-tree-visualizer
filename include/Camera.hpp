@@ -10,6 +10,10 @@
  * Descrição:
  * Declara a classe Camera responsável pela matriz de visualização
  * e pelo processamento de entrada do mouse (pan/rotate/zoom).
+ *
+ * Créditos:
+ * A lógica de processamento de mouse (Euler Angles: Yaw/Pitch) e movimentação
+ * foi adaptada da classe 'Camera' do tutorial LearnOpenGL.com (Joey de Vries).
  */
 
 #pragma once

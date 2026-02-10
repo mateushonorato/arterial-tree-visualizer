@@ -9,6 +9,10 @@
  * Data: Fevereiro/2026
  * Descrição:
  * Implementa utilitários de picking por raio (unProject + interseção).
+ *
+ * Créditos:
+ * Baseado em documentação técnica da biblioteca GLM (unProject) e teoria
+ * de Ray Casting.
  */
 
 #include <algorithm>
@@ -35,26 +39,34 @@ namespace PickingUtils
         // Define o Viewport
         glm::vec4 viewport(0.0f, 0.0f, (float)screenW, (float)screenH);
 
-        // 1. Encontra o ponto no Near Plane (Z=0.0 na tela)
+        // Converte coordenadas de tela (2D) para espaço do mundo (3D).
+        // `glm::unProject` aplica a inversa das transformações de
+        // Projeção e View para reconstruir as posições 3D correspondentes
+        // aos pontos no plano próximo (z=0) e no plano distante (z=1).
+        // A partir desses dois pontos é obtido o raio de picking no mundo:
+        // `outOrigin` no Near Plane e `outDir` como direção normalizada
+        // em direção ao Far Plane.
         glm::vec3 nearPoint = glm::unProject(
             glm::vec3(mouseX, winY, 0.0f),
             view,
             projection,
             viewport);
 
-        // 2. Encontra o ponto no Far Plane (Z=1.0 na tela)
         glm::vec3 farPoint = glm::unProject(
             glm::vec3(mouseX, winY, 1.0f),
             view,
             projection,
             viewport);
 
-        // 3. O Raio é a linha que conecta esses dois pontos
         outOrigin = nearPoint;
         outDir = glm::normalize(farPoint - nearPoint);
     }
 
-    // A função rayIntersectsSegment permanece IGUAL à anterior...
+    // Calcula a interseção entre um raio e um segmento cilíndrico (segmento
+    // com raio). A técnica busca os pontos mais próximos entre a linha do
+    // raio e a linha do segmento, resolvendo para os parâmetros escalar do
+    // raio (sc) e do segmento (tc). Em seguida verifica-se a distância
+    // mínima entre esses pontos e compara com o raio do segmento.
     bool rayIntersectsSegment(
         glm::vec3 rayOrigin,
         glm::vec3 rayDir,
@@ -63,8 +75,10 @@ namespace PickingUtils
         float segRadius,
         float &outDist)
     {
-        // ... (Mantenha o código de interseção que você já tem aqui) ...
-        // Vou repetir apenas para garantir que o arquivo fique completo se copiar tudo:
+        // Implementação: resolve o sistema para minimizar a distância entre
+        // dois segmentos de reta (um é o raio parametrizado por sc, outro
+        // é o segmento parametrizado por tc), cuidando do caso degenerado
+        // em que o segmento tem comprimento quase zero.
         glm::vec3 v = segB - segA;
         glm::vec3 w0 = rayOrigin - segA;
         float lenSq = glm::dot(v, v);

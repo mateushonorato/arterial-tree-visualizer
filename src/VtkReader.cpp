@@ -24,7 +24,7 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
     std::ifstream file(filepath);
     if (!file.is_open())
     {
-        std::cerr << "[VTKReader] Failed to open file: " << filepath << std::endl;
+        std::cerr << "[VTKReader] Falha ao abrir arquivo: " << filepath << std::endl;
         return false;
     }
     std::string line;
@@ -44,7 +44,6 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
     bool foundPoints = false, foundLines = false, foundRadii = false;
     while (std::getline(file, line))
     {
-        // Remove leading/trailing whitespace
         line.erase(0, line.find_first_not_of(" \t\r\n"));
         line.erase(line.find_last_not_of(" \t\r\n") + 1);
         if (line.empty())
@@ -52,7 +51,7 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
         std::stringstream ss(line);
         std::string keyword;
         ss >> keyword;
-        // Convert keyword to uppercase for robust matching
+        // Converte a palavra-chave para maiúsculas para correspondência robusta
         std::string keyword_upper = keyword;
         std::transform(keyword_upper.begin(), keyword_upper.end(), keyword_upper.begin(), ::toupper);
         if (state == SEEK)
@@ -62,7 +61,7 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
                 ss >> numPoints;
                 if (numPoints == 0)
                 {
-                    std::cerr << "[VTKReader] POINTS section has zero points." << std::endl;
+                    std::cerr << "[VTKReader] Seção POINTS não contém pontos." << std::endl;
                     return false;
                 }
                 state = POINTS;
@@ -76,7 +75,7 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
             std::stringstream pointStream(line);
             if (!(pointStream >> x >> y >> z))
             {
-                std::cerr << "[VTKReader] Error reading point at index " << pointsRead << std::endl;
+                std::cerr << "[VTKReader] Erro ao ler ponto no índice " << pointsRead << std::endl;
                 return false;
             }
             outTree.nodes.push_back({glm::vec3(x, y, z)});
@@ -93,7 +92,7 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
             ss >> numLines >> numLineIndices;
             if (numLines == 0)
             {
-                std::cerr << "[VTKReader] LINES section has zero lines." << std::endl;
+                std::cerr << "[VTKReader] Seção LINES não contém linhas." << std::endl;
                 return false;
             }
             tempSegments.clear();
@@ -107,12 +106,12 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
             std::stringstream lineStream(line);
             if (!(lineStream >> n >> a >> b))
             {
-                std::cerr << "[VTKReader] Error reading line connectivity at line " << linesRead << std::endl;
+                std::cerr << "[VTKReader] Erro ao ler conectividade de linha na linha " << linesRead << std::endl;
                 return false;
             }
             if (n != 2)
             {
-                std::cerr << "[VTKReader] Only segments (n=2) are supported. Found n=" << n << std::endl;
+                std::cerr << "[VTKReader] Apenas segmentos (n=2) são suportados. Encontrado n=" << n << std::endl;
                 return false;
             }
             tempSegments.push_back({a, b, 0.0f});
@@ -139,7 +138,7 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
         }
         if (state == SCALARS && keyword_upper == "LOOKUP_TABLE")
         {
-            // Next lines are radii
+            // Próximas linhas contém os raios (valores escalares)
             radiiRead = 0;
             state = RADII;
             continue;
@@ -150,12 +149,12 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
             std::stringstream scalarStream(line);
             if (!(scalarStream >> r))
             {
-                std::cerr << "[VTKReader] Error reading radius at index " << radiiRead << std::endl;
+                std::cerr << "[VTKReader] Erro ao ler raio no índice " << radiiRead << std::endl;
                 return false;
             }
             if (radiiRead >= tempSegments.size())
             {
-                std::cerr << "[VTKReader] More radii than segments!" << std::endl;
+                std::cerr << "[VTKReader] Mais raios que segmentos!" << std::endl;
                 return false;
             }
             tempSegments[radiiRead].radius = r;
@@ -168,15 +167,15 @@ bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
             continue;
         }
     }
-    // Final assignment and validation
+    // Atribuição final e validação
     if (!foundPoints || !foundLines || !foundRadii)
     {
-        std::cerr << "[VTKReader] Parsing failed or file incomplete: " << filepath << std::endl;
+        std::cerr << "[VTKReader] Falha no parsing ou arquivo incompleto: " << filepath << std::endl;
         return false;
     }
     if (tempSegments.size() != radiiRead)
     {
-        std::cerr << "[VTKReader] Number of radii (" << radiiRead << ") does not match number of segments (" << tempSegments.size() << ")" << std::endl;
+        std::cerr << "[VTKReader] Número de raios (" << radiiRead << ") difere do número de segmentos (" << tempSegments.size() << ")" << std::endl;
         return false;
     }
     outTree.segments = tempSegments;

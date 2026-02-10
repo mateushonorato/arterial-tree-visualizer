@@ -9,6 +9,10 @@
  * Data: Fevereiro/2026
  * Descrição:
  * Implementa utilitários para compilação e uso de programas GLSL.
+ *
+ * Créditos:
+ * Estrutura da classe (leitura de arquivos/streams e tratamento de erros)
+ * baseada na implementação padrão sugerida pelo tutorial LearnOpenGL.com.
  */
 
 #include <fstream>

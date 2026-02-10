@@ -9,6 +9,10 @@
  * Data: Fevereiro/2026
  * Descrição:
  * Implementa utilitários para recorte de segmentos (Liang-Barsky).
+ *
+ * Créditos:
+ * Implementação do Algoritmo de Liang-Barsky (Aula 17) para recorte
+ * paramétrico de segmentos.
  */
 
 #include "ClippingUtils.hpp"
@@ -26,7 +30,11 @@ bool ClippingUtils::clipSegment(glm::vec3 &p0, glm::vec3 &p1, const glm::vec3 &b
         float max = boxMax[axis];
         float d = p[axis];
         float q0 = p0[axis];
-        // First inequality: min - q0 <= d * t
+        // Calcula os parâmetros t onde a reta intercepta os planos paralelos
+        // à dimensão atual: t = (plane - q0) / d.
+        // Atualiza-se `t0` (entrada) e `t1` (saída) a partir dessas interseções
+        // para manter o segmento dentro da caixa de recorte usando o método
+        // Liang-Barsky.
         if (d != 0.0f)
         {
             float tMin = (min - q0) / d;
