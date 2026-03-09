@@ -18,6 +18,7 @@
 #include <cmath>
 #include <limits>
 #include "VtkReader.hpp"
+#include "ArterialTree.hpp"
 
 bool VtkReader::load(const std::string &filepath, ArterialTree &outTree)
 {

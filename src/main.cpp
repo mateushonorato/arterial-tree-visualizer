@@ -31,25 +31,44 @@
 #include "ScreenshotUtils.hpp"
 #include "Camera.hpp"
 #include "PickingUtils.hpp"
+#include "ArterialTree.hpp"
 
-// Instância global de câmera
-Camera camera;
+const int WINDOW_WIDTH = 1280;
+const int WINDOW_HEIGHT = 720;
+const int OPENGL_MAJOR_VERSION = 3;
+const int OPENGL_MINOR_VERSION = 3;
+const float ROTATION_ANGLE = -90.0f;
+const glm::vec4 CLEAR_COLOR = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
+const float ORTHO_NEAR_PLANE = 0.1f;
+const float ORTHO_FAR_PLANE = 100.0f;
+const float PERSPECTIVE_FOV = 45.0f;
+const float PERSPECTIVE_NEAR_PLANE = 0.1f;
+const float PERSPECTIVE_FAR_PLANE = 100.0f;
+const float HIT_RADIUS_MULTIPLIER = 1.1f;
+const float MIN_HIT_RADIUS = 0.0001f;
+
+struct AppContext
+{
+    Camera camera;
+    AnimationController animCtrl;
+    ArterialTree tree;
+    SceneContext sceneCtx;
+    glm::mat4 view;
+    glm::mat4 projection;
+};
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-// Declarações externas para acesso
-extern AnimationController animCtrl;
-extern ArterialTree tree;
-extern SceneContext sceneCtx;
-extern glm::mat4 view;
-extern glm::mat4 projection;
-
 void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 {
     if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse)
+        return;
+
+    AppContext *context = static_cast<AppContext *>(glfwGetWindowUserPointer(window));
+    if (!context)
         return;
 
     double xpos, ypos;
@@ -71,33 +90,33 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
         double mouseY_FB = ypos * yScale;
 
         // 2. Pegar View Matrix Atualizada
-        glm::mat4 currentView = camera.getViewMatrix();
+        glm::mat4 currentView = context->camera.getViewMatrix();
 
         // 3. CALCULAR RAIO (Origem + Direção)
         // Usamos a nova função que lida com Ortho e Perspective automaticamente
         glm::vec3 rayOrigin, rayDir;
-        PickingUtils::getRayFromMouse(mouseX_FB, mouseY_FB, fbWidth, fbHeight, currentView, projection, rayOrigin, rayDir);
+        PickingUtils::getRayFromMouse(mouseX_FB, mouseY_FB, fbWidth, fbHeight, currentView, context->projection, rayOrigin, rayDir);
 
         // 4. Matriz Model (-90 graus em 3D)
         glm::mat4 model = glm::mat4(1.0f);
-        if (animCtrl.getCurrentMode() == AnimationController::Mode3D)
+        if (context->animCtrl.getCurrentMode() == AnimationController::Mode3D)
         {
-            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(ROTATION_ANGLE), glm::vec3(1.0f, 0.0f, 0.0f));
         }
 
         int closestIdx = -1;
         float closestDist = std::numeric_limits<float>::max();
 
-        for (size_t i = 0; i < tree.segments.size(); ++i)
+        for (size_t i = 0; i < context->tree.segments.size(); ++i)
         {
-            const auto &seg = tree.segments[i];
-            glm::vec3 a = tree.nodes[seg.indexA].position;
-            glm::vec3 b = tree.nodes[seg.indexB].position;
+            const auto &seg = context->tree.segments[i];
+            glm::vec3 a = context->tree.nodes[seg.indexA].position;
+            glm::vec3 b = context->tree.nodes[seg.indexB].position;
             // Clipping check
-            if (animCtrl.clipping.enabled)
+            if (context->animCtrl.clipping.enabled)
             {
                 glm::vec3 tempA = a, tempB = b;
-                if (!ClippingUtils::clipSegment(tempA, tempB, animCtrl.clipping.min, animCtrl.clipping.max))
+                if (!ClippingUtils::clipSegment(tempA, tempB, context->animCtrl.clipping.min, context->animCtrl.clipping.max))
                 {
                     continue;
                 }
@@ -106,7 +125,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
             glm::vec4 localB = glm::vec4(b, 1.0f);
             glm::vec3 worldA = glm::vec3(model * localA);
             glm::vec3 worldB = glm::vec3(model * localB);
-            float hitRadius = std::max(seg.radius * animCtrl.radiusScale * 1.1f, 0.0001f);
+            float hitRadius = std::max(seg.radius * context->animCtrl.radiusScale * HIT_RADIUS_MULTIPLIER, MIN_HIT_RADIUS);
             float outDist;
             if (PickingUtils::rayIntersectsSegment(rayOrigin, rayDir, worldA, worldB, hitRadius, outDist))
             {
@@ -118,7 +137,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
             }
         }
 
-        animCtrl.selectSegment(closestIdx, tree);
+        context->animCtrl.selectSegment(closestIdx, context->tree);
     }
 
     // Se Ctrl está pressionado E botão esquerdo, trata como pan (mão)
@@ -126,23 +145,30 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
     if (button == GLFW_MOUSE_BUTTON_LEFT && (mods & GLFW_MOD_CONTROL))
     {
         // Simula botão direito para Camera
-        camera.processMouseButton(GLFW_MOUSE_BUTTON_RIGHT, action, xpos, ypos);
+        context->camera.processMouseButton(GLFW_MOUSE_BUTTON_RIGHT, action, xpos, ypos);
         return;
     }
 
-    camera.processMouseButton(button, action, xpos, ypos);
+    context->camera.processMouseButton(button, action, xpos, ypos);
 }
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 {
-    camera.processMouseMovement(xpos, ypos);
+    AppContext *context = static_cast<AppContext *>(glfwGetWindowUserPointer(window));
+    if (!context)
+        return;
+    context->camera.processMouseMovement(xpos, ypos);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
     if (ImGui::GetCurrentContext() != nullptr && ImGui::GetIO().WantCaptureMouse)
         return;
-    camera.processMouseScroll(static_cast<float>(yoffset));
+
+    AppContext *context = static_cast<AppContext *>(glfwGetWindowUserPointer(window));
+    if (!context)
+        return;
+    context->camera.processMouseScroll(static_cast<float>(yoffset));
 }
 
 void processInput(GLFWwindow *window)
@@ -151,29 +177,29 @@ void processInput(GLFWwindow *window)
         glfwSetWindowShouldClose(window, true);
 }
 
-// Variáveis globais usadas pelos callbacks (picking, UI, etc.)
-AnimationController animCtrl;
-ArterialTree tree;
-SceneContext sceneCtx;
-glm::mat4 view;
-glm::mat4 projection;
-
-int main()
+int main(int argc, char *argv[])
 {
+    // Obtém o caminho do executável
+    std::string exePath = argv[0];
+    std::string exeDir = exePath.substr(0, exePath.find_last_of("/\\"));
+
     // Inicialização do GLFW
     if (!glfwInit())
         return -1;
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OPENGL_MAJOR_VERSION);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OPENGL_MINOR_VERSION);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(1280, 720, "Arterial Tree Visualization", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Arterial Tree Visualization", nullptr, nullptr);
     if (!window)
     {
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
+
+    AppContext context;
+    glfwSetWindowUserPointer(window, &context);
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -203,30 +229,34 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Objetos do Domínio
+    // Constrói os caminhos para os shaders
+    std::string vertexShaderPath = exeDir + "/../shaders/vertex.glsl";
+    std::string fragmentShaderPath = exeDir + "/../shaders/fragment.glsl";
+    std::string lineVertexShaderPath = exeDir + "/../shaders/line_vertex.glsl";
+    std::string lineFragmentShaderPath = exeDir + "/../shaders/line_fragment.glsl";
 
-    Shader shader("../shaders/vertex.glsl", "../shaders/fragment.glsl");
-    Shader lineShader("../shaders/line_vertex.glsl", "../shaders/line_fragment.glsl");
+    // Objetos do Domínio
+    Shader shader(vertexShaderPath.c_str(), fragmentShaderPath.c_str());
+    Shader lineShader(lineVertexShaderPath.c_str(), lineFragmentShaderPath.c_str());
     TreeRenderer renderer;
     MenuController menuCtrl;
-    sceneCtx.init();
-    view = glm::mat4(1.0f);
-    projection = glm::mat4(1.0f);
+    context.sceneCtx.init();
+    context.view = glm::mat4(1.0f);
+    context.projection = glm::mat4(1.0f);
 
     double lastTime = glfwGetTime();
 
     // Loop Principal
-
     while (!glfwWindowShouldClose(window))
     {
         // Lógica de captura de tela
-        bool isSnapshot = animCtrl.isScreenshotRequested();
+        bool isSnapshot = context.animCtrl.isScreenshotRequested();
 
         // Limpar buffer de cor (transparente para screenshot, normal caso contrário)
         if (isSnapshot)
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         else
-            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+            glClearColor(CLEAR_COLOR.r, CLEAR_COLOR.g, CLEAR_COLOR.b, CLEAR_COLOR.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Lógica de animação
@@ -234,24 +264,24 @@ int main()
         float deltaTime = static_cast<float>(currentTime - lastTime);
         lastTime = currentTime;
         processInput(window);
-        animCtrl.update(deltaTime, tree, renderer);
+        context.animCtrl.update(deltaTime, context.tree, renderer);
 
         // Atualiza razão de aspecto e matrizes de view/projection
         int width, height;
         glfwGetFramebufferSize(window, &width, &height);
         glViewport(0, 0, width, height);
         float aspect = (height > 0) ? (float)width / (float)height : 1.0f;
-        view = camera.getViewMatrix();
-        if (animCtrl.useOrthographic)
+        context.view = context.camera.getViewMatrix();
+        if (context.animCtrl.useOrthographic)
         {
-            float orthoHeight = glm::length(camera.getPosition());
+            float orthoHeight = glm::length(context.camera.getPosition());
             orthoHeight = std::max(orthoHeight, 0.1f);
             float orthoWidth = orthoHeight * aspect;
-            projection = glm::ortho(-orthoWidth, orthoWidth, -orthoHeight, orthoHeight, 0.1f, 100.0f);
+            context.projection = glm::ortho(-orthoWidth, orthoWidth, -orthoHeight, orthoHeight, ORTHO_NEAR_PLANE, ORTHO_FAR_PLANE);
         }
         else
         {
-            projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
+            context.projection = glm::perspective(glm::radians(PERSPECTIVE_FOV), aspect, PERSPECTIVE_NEAR_PLANE, PERSPECTIVE_FAR_PLANE);
         }
 
         // Cursor para indicar pan
@@ -259,65 +289,65 @@ int main()
         glfwSetCursor(window, isPanning ? handCursor : arrowCursor);
 
         // Atualização visual quando necessário
-        if (animCtrl.isVisualDirty())
+        if (context.animCtrl.isVisualDirty())
         {
-            if (animCtrl.getCurrentMode() == AnimationController::ModeWireframe)
+            if (context.animCtrl.getCurrentMode() == AnimationController::ModeWireframe)
             {
-                renderer.initWireframe(tree.nodes, tree.segments,
-                                       animCtrl.clipping.enabled,
-                                       animCtrl.clipping.min,
-                                       animCtrl.clipping.max);
+                renderer.initWireframe(context.tree.nodes, context.tree.segments,
+                                       context.animCtrl.clipping.enabled,
+                                       context.animCtrl.clipping.min,
+                                       context.animCtrl.clipping.max);
             }
             else
             {
-                renderer.init(tree,
-                              animCtrl.radiusScale,
-                              animCtrl.showSpheres,
-                              animCtrl.clipping.enabled,
-                              animCtrl.clipping.min,
-                              animCtrl.clipping.max);
+                renderer.init(context.tree,
+                              context.animCtrl.radiusScale,
+                              context.animCtrl.showSpheres,
+                              context.animCtrl.clipping.enabled,
+                              context.animCtrl.clipping.min,
+                              context.animCtrl.clipping.max);
             }
-            animCtrl.resetVisualDirty();
+            context.animCtrl.resetVisualDirty();
         }
 
         // Configurar uniforms do shader e desenhar a cena
         glm::mat4 model = glm::mat4(1.0f);
-        if (animCtrl.getCurrentMode() == AnimationController::Mode3D)
+        if (context.animCtrl.getCurrentMode() == AnimationController::Mode3D)
         {
-            model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+            model = glm::rotate(model, glm::radians(ROTATION_ANGLE), glm::vec3(1.0f, 0.0f, 0.0f));
         }
         shader.use();
         shader.setMat4("model", model);
-        shader.setMat4("view", view);
-        shader.setMat4("projection", projection);
-        shader.setVec3("lightPos", glm::vec3(animCtrl.lightPos[0], animCtrl.lightPos[1], animCtrl.lightPos[2]));
-        shader.setVec3("viewPos", camera.getPosition());
-        shader.setFloat("alpha", animCtrl.transparency);
-        shader.setInt("lightingMode", animCtrl.lightingMode);
+        shader.setMat4("view", context.view);
+        shader.setMat4("projection", context.projection);
+        shader.setVec3("lightPos", glm::vec3(context.animCtrl.lightPos[0], context.animCtrl.lightPos[1], context.animCtrl.lightPos[2]));
+        shader.setVec3("viewPos", context.camera.getPosition());
+        shader.setFloat("alpha", context.animCtrl.transparency);
+        shader.setInt("lightingMode", context.animCtrl.lightingMode);
 
-        if (animCtrl.getCurrentMode() == AnimationController::ModeWireframe)
+        if (context.animCtrl.getCurrentMode() == AnimationController::ModeWireframe)
         {
             lineShader.use();
             lineShader.setMat4("model", model);
-            lineShader.setMat4("view", view);
-            lineShader.setMat4("projection", projection);
-            lineShader.setInt("selectedSegmentID", animCtrl.getSelectedSegment());
-            lineShader.setFloat("alpha", animCtrl.transparency);
-            renderer.drawWireframe(lineShader, view, projection, model, animCtrl.lineWidth, animCtrl.getSelectedSegment());
+            lineShader.setMat4("view", context.view);
+            lineShader.setMat4("projection", context.projection);
+            lineShader.setInt("selectedSegmentID", context.animCtrl.getSelectedSegment());
+            lineShader.setFloat("alpha", context.animCtrl.transparency);
+            renderer.drawWireframe(lineShader, context.view, context.projection, model, context.animCtrl.lineWidth, context.animCtrl.getSelectedSegment());
         }
         else
         {
-            renderer.draw(shader, view, projection, model, animCtrl.getSelectedSegment());
+            renderer.draw(shader, context.view, context.projection, model, context.animCtrl.getSelectedSegment());
         }
 
         // Desenhar grade (grid) e gizmo
-        if (animCtrl.showGrid)
+        if (context.animCtrl.showGrid)
         {
-            sceneCtx.drawGrid(view, projection);
+            context.sceneCtx.drawGrid(context.view, context.projection);
         }
-        if (animCtrl.showGizmo)
+        if (context.animCtrl.showGizmo)
         {
-            sceneCtx.drawGizmo(view, projection, width, height);
+            context.sceneCtx.drawGizmo(context.view, context.projection, width, height);
         }
 
         // Renderizar UI (ocultar menu principal se for snapshot)
@@ -329,15 +359,15 @@ int main()
         ImGuiIO &io = ImGui::GetIO();
         if (!io.WantCaptureKeyboard && ImGui::IsKeyPressed(ImGuiKey_Space))
         {
-            animCtrl.togglePlay();
-            animCtrl.m_visualDirty = true;
+            context.animCtrl.togglePlay();
+            context.animCtrl.m_visualDirty = true;
         }
         // Atalho: 'P' para capturar screenshot (respeita captura do ImGui)
         if (!io.WantCaptureKeyboard && ImGui::IsKeyPressed(ImGuiKey_P))
         {
-            animCtrl.requestScreenshot();
+            context.animCtrl.requestScreenshot();
         }
-        menuCtrl.render(animCtrl, tree, renderer, isSnapshot);
+        menuCtrl.render(context.animCtrl, context.tree, renderer, isSnapshot);
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -345,7 +375,7 @@ int main()
         if (isSnapshot)
         {
             ScreenshotUtils::saveScreenshot(width, height);
-            animCtrl.resetScreenshotRequest();
+            context.animCtrl.resetScreenshotRequest();
         }
 
         // Troca de buffers (swap) e poll de eventos

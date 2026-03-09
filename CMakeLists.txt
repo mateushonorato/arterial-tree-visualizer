@@ -35,6 +35,7 @@ set(SOURCES
     src/Shader.cpp
     src/TreeRenderer.cpp
     src/VtkReader.cpp
+    src/ArterialTree.cpp
 )
 
 add_executable(ArterialVis ${SOURCES})
