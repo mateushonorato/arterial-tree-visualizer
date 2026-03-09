@@ -1,5 +1,21 @@
-// Exercise 04 - Sum of colors (red + green -> yellow)
-// Renders a triangle using a fragment shader uniform `triangleColor`.
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
+ * Arquivo: ex04_soma_cores.cpp
+ * Autor(es): Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Demonstração da soma aditiva de cores (Vermelho + Verde = Amarelo)
+ * utilizando um uniform vec3 no fragment shader para definir a cor
+ * do triângulo renderizado.
+ *
+ * Créditos:
+ * Baseado nos conceitos e exemplos apresentados nas aulas do
+ * Prof. Rafael Bonfim (DECOM/UFOP).
+ */
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -23,29 +39,31 @@ void main() {
 }
 )glsl";
 
+// Verifica erros de compilação do shader
 static void checkCompile(GLuint shader, const std::string &name) {
     GLint success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetShaderInfoLog(shader, 1024, nullptr, info);
-        std::cerr << name << " compile error:\n" << info << std::endl;
+        std::cerr << name << " erro de compilação:\n" << info << std::endl;
     }
 }
 
+// Verifica erros de linkagem do programa
 static void checkLink(GLuint prog) {
     GLint success;
     glGetProgramiv(prog, GL_LINK_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetProgramInfoLog(prog, 1024, nullptr, info);
-        std::cerr << "Program link error:\n" << info << std::endl;
+        std::cerr << "Erro de linkagem do programa:\n" << info << std::endl;
     }
 }
 
 int main() {
     if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW\n";
+        std::cerr << "Falha ao inicializar GLFW\n";
         return -1;
     }
 
@@ -56,9 +74,9 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercise 04 - Sum Colors", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercício 04 - Soma de Cores", nullptr, nullptr);
     if (!window) {
-        std::cerr << "Failed to create GLFW window\n";
+        std::cerr << "Falha ao criar janela GLFW\n";
         glfwTerminate();
         return -1;
     }
@@ -66,13 +84,13 @@ int main() {
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize GLAD\n";
+        std::cerr << "Falha ao inicializar GLAD\n";
         glfwDestroyWindow(window);
         glfwTerminate();
         return -1;
     }
 
-    // Build shader program
+    // Compila e linka o programa de shaders (pipeline programável)
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertexShaderSrc, nullptr);
     glCompileShader(vs);
@@ -92,13 +110,14 @@ int main() {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    // Triangle vertices
+    // Vértices do triângulo em coordenadas NDC (Normalized Device Coordinates)
     float vertices[] = {
          0.0f,  0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
          0.5f, -0.5f, 0.0f
     };
 
+    // Configura VAO/VBO para armazenar a geometria na GPU
     GLuint VAO, VBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -111,10 +130,10 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
-    // Set clear color
+    // Define a cor de limpeza do framebuffer
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    // The sum of Red (1,0,0) and Green (0,1,0) => Yellow (1,1,0)
+    // Soma aditiva: Vermelho (1,0,0) + Verde (0,1,0) = Amarelo (1,1,0)
     glUseProgram(program);
     GLint colorLoc = glGetUniformLocation(program, "triangleColor");
     if (colorLoc != -1) {
@@ -127,6 +146,7 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // Envia os vértices para a rasterização com base no VAO ativo
         glUseProgram(program);
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);

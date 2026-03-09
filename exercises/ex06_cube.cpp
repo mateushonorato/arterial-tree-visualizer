@@ -1,5 +1,21 @@
-// Exercise 06 - Cube (manual modeling, 12 triangles = 36 vertices)
-// Modern OpenGL 3.3 Core, uses GLFW, GLAD and GLM for rotation
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
+ * Arquivo: ex06_cube.cpp
+ * Autor(es): Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Modelagem manual de um cubo 3D (6 faces, 12 triângulos, 36 vértices)
+ * com uma cor sólida por face e rotação animada via matrizes GLM.
+ * Utiliza teste de profundidade (depth test) para visão correta.
+ *
+ * Créditos:
+ * Baseado nos conceitos e exemplos apresentados nas aulas do
+ * Prof. Rafael Bonfim (DECOM/UFOP).
+ */
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -31,28 +47,30 @@ void main() {
 }
 )glsl";
 
+// Verifica erros de compilação do shader
 static void checkCompile(GLuint shader, const char* name) {
     GLint success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetShaderInfoLog(shader, 1024, nullptr, info);
-        std::cerr << name << " compile error:\n" << info << std::endl;
+        std::cerr << name << " erro de compilação:\n" << info << std::endl;
     }
 }
+// Verifica erros de linkagem do programa
 static void checkLink(GLuint prog) {
     GLint success;
     glGetProgramiv(prog, GL_LINK_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetProgramInfoLog(prog, 1024, nullptr, info);
-        std::cerr << "Program link error:\n" << info << std::endl;
+        std::cerr << "Erro de linkagem do programa:\n" << info << std::endl;
     }
 }
 
 int main() {
     if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW\n";
+        std::cerr << "Falha ao inicializar GLFW\n";
         return -1;
     }
 
@@ -63,25 +81,25 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercise 06 - Cube", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercício 06 - Cubo", nullptr, nullptr);
     if (!window) {
-        std::cerr << "Failed to create GLFW window\n";
+        std::cerr << "Falha ao criar janela GLFW\n";
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize GLAD\n";
+        std::cerr << "Falha ao inicializar GLAD\n";
         glfwDestroyWindow(window);
         glfwTerminate();
         return -1;
     }
 
-    // Enable depth testing
+    // Habilita o teste de profundidade para renderização 3D correta
     glEnable(GL_DEPTH_TEST);
 
-    // Build shaders
+    // Compila e linka o programa de shaders
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertexShaderSrc, nullptr);
     glCompileShader(vs);
@@ -101,11 +119,11 @@ int main() {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    // Cube: 6 faces, 2 triangles per face = 12 triangles, 36 vertices
-    // Each vertex: position (x,y,z) + color (r,g,b)
-    // Colors: different solid color per face
+    // Cubo: 6 faces, 2 triângulos por face = 12 triângulos, 36 vértices
+    // Cada vértice: posição (x,y,z) + cor (r,g,b)
+    // Cores: uma cor sólida diferente por face
     float vertices[] = {
-        // +X face (right) - color: magenta (1,0,1)
+        // Face +X (direita) - magenta (1,0,1)
          0.5f, -0.5f,  0.5f,   1.0f, 0.0f, 1.0f,
          0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 1.0f,
          0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 1.0f,
@@ -114,7 +132,7 @@ int main() {
          0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 1.0f,
          0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 1.0f,
 
-        // -X face (left) - color: cyan (0,1,1)
+        // Face -X (esquerda) - ciano (0,1,1)
         -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 1.0f,
         -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 1.0f,
@@ -123,7 +141,7 @@ int main() {
         -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 1.0f,
 
-        // +Y face (top) - color: red (1,0,0)
+        // Face +Y (topo) - vermelho (1,0,0)
         -0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
          0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
         -0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
@@ -132,7 +150,7 @@ int main() {
          0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
         -0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
 
-        // -Y face (bottom) - color: green (0,1,0)
+        // Face -Y (base) - verde (0,1,0)
         -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
          0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
@@ -141,7 +159,7 @@ int main() {
          0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
 
-        // +Z face (front) - color: blue (0,0,1)
+        // Face +Z (frente) - azul (0,0,1)
         -0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
          0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
@@ -150,7 +168,7 @@ int main() {
          0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
 
-        // -Z face (back) - color: yellow (1,1,0)
+        // Face -Z (trás) - amarelo (1,1,0)
          0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,
          0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f,
@@ -178,13 +196,14 @@ int main() {
 
     glUseProgram(program);
 
-    // Uniform locations
+    // Localização dos uniforms das matrizes de transformação
     GLint modelLoc = glGetUniformLocation(program, "model");
     GLint viewLoc = glGetUniformLocation(program, "view");
     GLint projLoc = glGetUniformLocation(program, "projection");
 
-    // Camera / projection
+    // Câmera posicionada 3 unidades atrás na direção Z
     glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+    // Projeção perspectiva com campo de visão de 45º
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 100.0f);
 
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));

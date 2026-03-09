@@ -1,6 +1,24 @@
-// Exercise 12 - Vertex normals (smooth shading / Gouraud in vertex shader)
-// Builds an indexed cube mesh, computes per-vertex normals by averaging face normals,
-// and renders using Gouraud shading (lighting computed in vertex shader).
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
+ * Arquivo: ex12_vertex_normals.cpp
+ * Autor(es): Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Demonstração de sombreamento suave (Gouraud) com normais por vértice.
+ * As normais são calculadas pela média das normais das faces adjacentes
+ * a cada vértice, resultando em transições de iluminação suaves.
+ *
+ * Créditos:
+ * Baseado nos conceitos e exemplos apresentados nas aulas do
+ * Prof. Rafael Bonfim (DECOM/UFOP).
+ * Lógica de transformações espaciais e modelos de iluminação
+ * baseada nos tutoriais de LearnOpenGL.com e documentação da
+ * biblioteca GLM.
+ */
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -50,14 +68,16 @@ out vec4 FragColor;
 void main(){ FragColor = vec4(vColor, 1.0); }
 )glsl";
 
+// Verifica erros de compilação do shader
 static void checkCompile(GLuint sh, const char* name){
     GLint ok; glGetShaderiv(sh, GL_COMPILE_STATUS, &ok);
-    if(!ok){ char buf[1024]; glGetShaderInfoLog(sh, 1024, nullptr, buf); std::cerr<<name<<" compile: "<<buf<<"\n"; }
+    if(!ok){ char buf[1024]; glGetShaderInfoLog(sh, 1024, nullptr, buf); std::cerr<<name<<" compilação: "<<buf<<"\n"; }
 }
-static void checkLink(GLuint p){ GLint ok; glGetProgramiv(p, GL_LINK_STATUS, &ok); if(!ok){ char buf[1024]; glGetProgramInfoLog(p,1024,nullptr,buf); std::cerr<<"link: "<<buf<<"\n";} }
+// Verifica erros de linkagem do programa
+static void checkLink(GLuint p){ GLint ok; glGetProgramiv(p, GL_LINK_STATUS, &ok); if(!ok){ char buf[1024]; glGetProgramInfoLog(p,1024,nullptr,buf); std::cerr<<"linkagem: "<<buf<<"\n";} }
 
 int main(){
-    if(!glfwInit()){ std::cerr<<"glfwInit failed\n"; return -1; }
+    if(!glfwInit()){ std::cerr<<"Falha ao inicializar GLFW\n"; return -1; }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
@@ -65,15 +85,15 @@ int main(){
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* win = glfwCreateWindow(800,600,"ex12_vertex_normals",nullptr,nullptr);
-    if(!win){ std::cerr<<"window failed\n"; glfwTerminate(); return -1; }
+    GLFWwindow* win = glfwCreateWindow(800,600,"Exercício 12 - Normais por Vértice",nullptr,nullptr);
+    if(!win){ std::cerr<<"Falha ao criar janela\n"; glfwTerminate(); return -1; }
     glfwMakeContextCurrent(win);
 
-    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){ std::cerr<<"glad failed\n"; return -1; }
+    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){ std::cerr<<"Falha ao inicializar GLAD\n"; return -1; }
 
     glEnable(GL_DEPTH_TEST);
 
-    // Indexed cube: 8 positions
+    // Cubo indexado: 8 posições únicas compartilhadas pelas faces
     std::vector<glm::vec3> positions = {
         {-0.5f, -0.5f, -0.5f}, // 0
         { 0.5f, -0.5f, -0.5f}, // 1
@@ -85,23 +105,24 @@ int main(){
         {-0.5f,  0.5f,  0.5f}  // 7
     };
 
-    // 12 triangles (36 indices)
+    // 12 triângulos (36 índices)
     std::vector<unsigned int> idx = {
-        // front (+Z)
+        // frente (+Z)
         4,5,6,  4,6,7,
-        // back (-Z)
+        // trás (-Z)
         1,0,3,  1,3,2,
-        // left (-X)
+        // esquerda (-X)
         0,4,7,  0,7,3,
-        // right (+X)
+        // direita (+X)
         5,1,2,  5,2,6,
-        // top (+Y)
+        // topo (+Y)
         3,7,6,  3,6,2,
-        // bottom (-Y)
+        // base (-Y)
         0,1,5,  0,5,4
     };
 
-    // compute normals per vertex
+    // Calcula normais por vértice: acumula a normal de cada face adjacente
+    // e depois normaliza o resultado (média das normais das faces)
     std::vector<glm::vec3> normals(positions.size(), glm::vec3(0.0f));
     for(size_t t=0;t<idx.size();t+=3){
         glm::vec3 p0 = positions[idx[t+0]];
@@ -116,7 +137,7 @@ int main(){
     }
     for(auto &n : normals) n = glm::normalize(n);
 
-    // build interleaved vertex buffer (pos + normal)
+    // Monta buffer intercalado (posição + normal) para envio à GPU
     std::vector<float> vboData;
     for(size_t i=0;i<positions.size();++i){
         vboData.push_back(positions[i].x);
@@ -144,7 +165,7 @@ int main(){
 
     glBindVertexArray(0);
 
-    // compile shaders
+    // Compila os shaders
     GLuint vs = glCreateShader(GL_VERTEX_SHADER); glShaderSource(vs,1,&vertexSrc,nullptr); glCompileShader(vs); checkCompile(vs,"vs");
     GLuint fs = glCreateShader(GL_FRAGMENT_SHADER); glShaderSource(fs,1,&fragmentSrc,nullptr); glCompileShader(fs); checkCompile(fs,"fs");
     GLuint prog = glCreateProgram(); glAttachShader(prog,vs); glAttachShader(prog,fs); glLinkProgram(prog); checkLink(prog);

@@ -1,5 +1,21 @@
-// Exercise 05 - Primitives (GL_TRIANGLE_STRIP square)
-// Renders a colored square using 4 vertices in a triangle strip.
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
+ * Arquivo: ex05_primitives.cpp
+ * Autor(es): Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Renderização de um quadrado colorido utilizando a primitiva
+ * GL_TRIANGLE_STRIP com 4 vértices, demonstrando interpolação
+ * de cores entre vértices pelo rasterizador.
+ *
+ * Créditos:
+ * Baseado nos conceitos e exemplos apresentados nas aulas do
+ * Prof. Rafael Bonfim (DECOM/UFOP).
+ */
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -25,29 +41,31 @@ void main() {
 }
 )glsl";
 
+// Verifica erros de compilação do shader
 static void checkCompile(GLuint shader, const char* name) {
     GLint success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetShaderInfoLog(shader, 1024, nullptr, info);
-        std::cerr << name << " compile error:\n" << info << std::endl;
+        std::cerr << name << " erro de compilação:\n" << info << std::endl;
     }
 }
 
+// Verifica erros de linkagem do programa
 static void checkLink(GLuint prog) {
     GLint success;
     glGetProgramiv(prog, GL_LINK_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetProgramInfoLog(prog, 1024, nullptr, info);
-        std::cerr << "Program link error:\n" << info << std::endl;
+        std::cerr << "Erro de linkagem do programa:\n" << info << std::endl;
     }
 }
 
 int main() {
     if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW\n";
+        std::cerr << "Falha ao inicializar GLFW\n";
         return -1;
     }
 
@@ -58,22 +76,22 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercise 05 - Primitives", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercício 05 - Primitivas", nullptr, nullptr);
     if (!window) {
-        std::cerr << "Failed to create GLFW window\n";
+        std::cerr << "Falha ao criar janela GLFW\n";
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize GLAD\n";
+        std::cerr << "Falha ao inicializar GLAD\n";
         glfwDestroyWindow(window);
         glfwTerminate();
         return -1;
     }
 
-    // Build shaders
+    // Compila e linka o programa de shaders
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertexShaderSrc, nullptr);
     glCompileShader(vs);
@@ -93,32 +111,32 @@ int main() {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    // Vertex format: position (x,y,z) then color (r,g,b)
-    // Four vertices in the exact order for GL_TRIANGLE_STRIP to form a square:
-    // V0: (-0.5, 0.5)  - Red
-    // V1: (-0.5,-0.5)  - Green
-    // V2: ( 0.5, 0.5)  - Blue
-    // V3: ( 0.5,-0.5)  - Yellow
+    // Formato do vértice: posição (x,y,z) seguido de cor (r,g,b)
+    // Quatro vértices na ordem exata para GL_TRIANGLE_STRIP formar um quadrado:
+    // V0: (-0.5, 0.5)  - Vermelho
+    // V1: (-0.5,-0.5)  - Verde
+    // V2: ( 0.5, 0.5)  - Azul
+    // V3: ( 0.5,-0.5)  - Amarelo
     float vertices[] = {
-        // positions        // colors
+        // posições          // cores
         -0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // V0
         -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, // V1
          0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f, // V2
          0.5f, -0.5f, 0.0f,  1.0f, 1.0f, 0.0f  // V3
     };
 
+    // Configura VAO/VBO para armazenar a geometria na GPU
     GLuint VAO, VBO;
-    glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // position
+    // Atributo 0: posição (3 floats)
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    // color
+    // Atributo 1: cor (3 floats, deslocamento de 12 bytes)
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
@@ -133,6 +151,8 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
+        // Rasteriza o quadrado como TRIANGLE_STRIP: o rasterizador interpola
+        // as cores entre os 4 vértices automaticamente
         glUseProgram(program);
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

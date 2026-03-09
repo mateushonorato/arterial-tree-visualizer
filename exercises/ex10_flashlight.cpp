@@ -1,9 +1,25 @@
-// Exercise 10 - Flashlight (spotlight in view space)
-// Spotlight parameters:
-// color: yellow (1,1,0)
-// cutoff: cos(radians(30.0))
-// exponent: 15.0
-// quadratic attenuation kq = 0.01
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
+ * Arquivo: ex10_flashlight.cpp
+ * Autor(es): Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Simulação de lanterna (spotlight) no espaço de visão (view space).
+ * A luz é amarela, com ângulo de corte de 30º, expoente 15 e
+ * atenuação quadrática (kq = 0.01). A iluminação segue a câmera,
+ * como uma lanterna presa ao observador.
+ *
+ * Créditos:
+ * Baseado nos conceitos e exemplos apresentados nas aulas do
+ * Prof. Rafael Bonfim (DECOM/UFOP).
+ * Lógica de transformações espaciais e modelos de iluminação
+ * baseada nos tutoriais de LearnOpenGL.com e documentação da
+ * biblioteca GLM.
+ */
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -77,28 +93,30 @@ void main() {
 }
 )glsl";
 
+// Verifica erros de compilação do shader
 static void checkCompile(GLuint shader, const char* name) {
     GLint success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetShaderInfoLog(shader, 1024, nullptr, info);
-        std::cerr << name << " compile error:\n" << info << std::endl;
+        std::cerr << name << " erro de compilação:\n" << info << std::endl;
     }
 }
+// Verifica erros de linkagem do programa
 static void checkLink(GLuint prog) {
     GLint success;
     glGetProgramiv(prog, GL_LINK_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetProgramInfoLog(prog, 1024, nullptr, info);
-        std::cerr << "Program link error:\n" << info << std::endl;
+        std::cerr << "Erro de linkagem do programa:\n" << info << std::endl;
     }
 }
 
 int main() {
     if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW\n";
+        std::cerr << "Falha ao inicializar GLFW\n";
         return -1;
     }
 
@@ -109,16 +127,16 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercise 10 - Flashlight", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercício 10 - Lanterna", nullptr, nullptr);
     if (!window) {
-        std::cerr << "Failed to create GLFW window\n";
+        std::cerr << "Falha ao criar janela GLFW\n";
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize GLAD\n";
+        std::cerr << "Falha ao inicializar GLAD\n";
         glfwDestroyWindow(window);
         glfwTerminate();
         return -1;
@@ -126,7 +144,7 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
 
-    // Build program
+    // Compila e linka o programa de shaders
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertexShaderSrc, nullptr);
     glCompileShader(vs);
@@ -146,9 +164,9 @@ int main() {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    // Cube data: position (3) + normal (3) + color (3) => 9 floats per vertex, 36 vertices
+    // Dados do cubo: posição (3) + normal (3) + cor (3) => 9 floats por vértice, 36 vértices
     float vertices[] = {
-        // +X face (right) normal (1,0,0) color magenta
+        // Face +X (direita) normal (1,0,0) cor magenta
          0.5f, -0.5f,  0.5f,   1.0f,0.0f,0.0f,    1.0f,0.0f,1.0f,
          0.5f,  0.5f,  0.5f,   1.0f,0.0f,0.0f,    1.0f,0.0f,1.0f,
          0.5f, -0.5f, -0.5f,   1.0f,0.0f,0.0f,    1.0f,0.0f,1.0f,
@@ -157,7 +175,7 @@ int main() {
          0.5f,  0.5f, -0.5f,   1.0f,0.0f,0.0f,    1.0f,0.0f,1.0f,
          0.5f, -0.5f, -0.5f,   1.0f,0.0f,0.0f,    1.0f,0.0f,1.0f,
 
-        // -X face (left) normal (-1,0,0) color cyan
+        // Face -X (esquerda) normal (-1,0,0) cor ciano
         -0.5f, -0.5f, -0.5f,  -1.0f,0.0f,0.0f,    0.0f,1.0f,1.0f,
         -0.5f,  0.5f, -0.5f,  -1.0f,0.0f,0.0f,    0.0f,1.0f,1.0f,
         -0.5f, -0.5f,  0.5f,  -1.0f,0.0f,0.0f,    0.0f,1.0f,1.0f,
@@ -166,7 +184,7 @@ int main() {
         -0.5f,  0.5f,  0.5f,  -1.0f,0.0f,0.0f,    0.0f,1.0f,1.0f,
         -0.5f, -0.5f,  0.5f,  -1.0f,0.0f,0.0f,    0.0f,1.0f,1.0f,
 
-        // +Y face (top) normal (0,1,0) color red
+        // Face +Y (topo) normal (0,1,0) cor vermelho
         -0.5f,  0.5f, -0.5f,   0.0f,1.0f,0.0f,    1.0f,0.0f,0.0f,
          0.5f,  0.5f, -0.5f,   0.0f,1.0f,0.0f,    1.0f,0.0f,0.0f,
         -0.5f,  0.5f,  0.5f,   0.0f,1.0f,0.0f,    1.0f,0.0f,0.0f,
@@ -175,7 +193,7 @@ int main() {
          0.5f,  0.5f,  0.5f,   0.0f,1.0f,0.0f,    1.0f,0.0f,0.0f,
         -0.5f,  0.5f,  0.5f,   0.0f,1.0f,0.0f,    1.0f,0.0f,0.0f,
 
-        // -Y face (bottom) normal (0,-1,0) color green
+        // Face -Y (base) normal (0,-1,0) cor verde
         -0.5f, -0.5f,  0.5f,   0.0f,-1.0f,0.0f,   0.0f,1.0f,0.0f,
          0.5f, -0.5f,  0.5f,   0.0f,-1.0f,0.0f,   0.0f,1.0f,0.0f,
         -0.5f, -0.5f, -0.5f,   0.0f,-1.0f,0.0f,   0.0f,1.0f,0.0f,
@@ -184,7 +202,7 @@ int main() {
          0.5f, -0.5f, -0.5f,   0.0f,-1.0f,0.0f,   0.0f,1.0f,0.0f,
         -0.5f, -0.5f, -0.5f,   0.0f,-1.0f,0.0f,   0.0f,1.0f,0.0f,
 
-        // +Z face (front) normal (0,0,1) color blue
+        // Face +Z (frente) normal (0,0,1) cor azul
         -0.5f, -0.5f,  0.5f,   0.0f,0.0f,1.0f,    0.0f,0.0f,1.0f,
          0.5f, -0.5f,  0.5f,   0.0f,0.0f,1.0f,    0.0f,0.0f,1.0f,
         -0.5f,  0.5f,  0.5f,   0.0f,0.0f,1.0f,    0.0f,0.0f,1.0f,
@@ -193,7 +211,7 @@ int main() {
          0.5f,  0.5f,  0.5f,   0.0f,0.0f,1.0f,    0.0f,0.0f,1.0f,
         -0.5f,  0.5f,  0.5f,   0.0f,0.0f,1.0f,    0.0f,0.0f,1.0f,
 
-        // -Z face (back) normal (0,0,-1) color yellow
+        // Face -Z (trás) normal (0,0,-1) cor amarelo
          0.5f, -0.5f, -0.5f,   0.0f,0.0f,-1.0f,   1.0f,1.0f,0.0f,
         -0.5f, -0.5f, -0.5f,   0.0f,0.0f,-1.0f,   1.0f,1.0f,0.0f,
          0.5f,  0.5f, -0.5f,   0.0f,0.0f,-1.0f,   1.0f,1.0f,0.0f,

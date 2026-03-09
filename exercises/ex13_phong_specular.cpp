@@ -1,5 +1,24 @@
-// Exercise 13 - Gouraud vs Phong specular demonstration
-// Press 'S' to toggle shading mode (Gouraud <-> Phong)
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
+ * Arquivo: ex13_phong_specular.cpp
+ * Autor(es): Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Comparação interativa entre Gouraud Shading (iluminação por
+ * vértice) e Phong Shading (iluminação por fragmento), ambos com
+ * componente especular Blinn-Phong. Tecla S alterna entre os modos.
+ *
+ * Créditos:
+ * Baseado nos conceitos e exemplos apresentados nas aulas do
+ * Prof. Rafael Bonfim (DECOM/UFOP).
+ * Lógica de transformações espaciais e modelos de iluminação
+ * baseada nos tutoriais de LearnOpenGL.com e documentação da
+ * biblioteca GLM.
+ */
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -12,11 +31,12 @@
 enum class ShadingMode { Gouraud, Phong };
 static ShadingMode shading = ShadingMode::Gouraud;
 
+// Callback de teclado: alterna entre modos de sombreamento
 void key_cb(GLFWwindow* w, int key, int sc, int action, int mods){
     if(action==GLFW_PRESS){
         if(key==GLFW_KEY_S){
             shading = (shading==ShadingMode::Gouraud) ? ShadingMode::Phong : ShadingMode::Gouraud;
-            std::cout << "Shading: " << (shading==ShadingMode::Gouraud?"Gouraud":"Phong") << '\n';
+            std::cout << "Sombreamento: " << (shading==ShadingMode::Gouraud?"Gouraud":"Phong") << '\n';
         } else if(key==GLFW_KEY_ESCAPE){
             glfwSetWindowShouldClose(w, GLFW_TRUE);
         }
@@ -126,11 +146,13 @@ void main(){
 }
 )glsl";
 
+// Verifica erros de compilação do shader
 static void checkCompile(GLuint s,const char* name){ GLint ok; glGetShaderiv(s,GL_COMPILE_STATUS,&ok); if(!ok){ char b[1024]; glGetShaderInfoLog(s,1024,nullptr,b); std::cerr<<name<<" shader: "<<b<<"\n"; }}
-static void checkLink(GLuint p){ GLint ok; glGetProgramiv(p,GL_LINK_STATUS,&ok); if(!ok){ char b[1024]; glGetProgramInfoLog(p,1024,nullptr,b); std::cerr<<"program link: "<<b<<"\n"; }}
+// Verifica erros de linkagem do programa
+static void checkLink(GLuint p){ GLint ok; glGetProgramiv(p,GL_LINK_STATUS,&ok); if(!ok){ char b[1024]; glGetProgramInfoLog(p,1024,nullptr,b); std::cerr<<"linkagem programa: "<<b<<"\n"; }}
 
 int main(){
-    if(!glfwInit()){ std::cerr<<"glfwInit failed\n"; return -1; }
+    if(!glfwInit()){ std::cerr<<"Falha ao inicializar GLFW\n"; return -1; }
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
     glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
@@ -138,16 +160,16 @@ int main(){
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* win = glfwCreateWindow(800,600,"ex13_phong_specular",nullptr,nullptr);
-    if(!win){ std::cerr<<"window fail\n"; glfwTerminate(); return -1; }
+    GLFWwindow* win = glfwCreateWindow(800,600,"Exercício 13 - Especular Phong",nullptr,nullptr);
+    if(!win){ std::cerr<<"Falha ao criar janela\n"; glfwTerminate(); return -1; }
     glfwMakeContextCurrent(win);
     glfwSetKeyCallback(win, key_cb);
 
-    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){ std::cerr<<"glad fail\n"; return -1; }
+    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){ std::cerr<<"Falha ao inicializar GLAD\n"; return -1; }
 
     glEnable(GL_DEPTH_TEST);
 
-    // Indexed cube same as ex12
+    // Cubo indexado (mesmo do ex12)
     std::vector<glm::vec3> pos = {
         {-0.5f,-0.5f,-0.5f}, {0.5f,-0.5f,-0.5f}, {0.5f,0.5f,-0.5f}, {-0.5f,0.5f,-0.5f},
         {-0.5f,-0.5f,0.5f},  {0.5f,-0.5f,0.5f},  {0.5f,0.5f,0.5f},  {-0.5f,0.5f,0.5f}
@@ -164,7 +186,7 @@ int main(){
     }
     for(auto &n : normals) n = glm::normalize(n);
 
-    // interleaved buffer pos + normal
+    // Buffer intercalado: posição + normal
     std::vector<float> vbuf;
     for(size_t i=0;i<pos.size();++i){ vbuf.push_back(pos[i].x); vbuf.push_back(pos[i].y); vbuf.push_back(pos[i].z); vbuf.push_back(normals[i].x); vbuf.push_back(normals[i].y); vbuf.push_back(normals[i].z); }
 
@@ -176,20 +198,20 @@ int main(){
     glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)(3*sizeof(float))); glEnableVertexAttribArray(1);
     glBindVertexArray(0);
 
-    // compile gouraud program
+    // Compila programa Gouraud (iluminação calculada no vertex shader)
     GLuint gvs = glCreateShader(GL_VERTEX_SHADER); glShaderSource(gvs,1,&gouraud_vs,nullptr); glCompileShader(gvs); checkCompile(gvs,"g_vs");
     GLuint gfs = glCreateShader(GL_FRAGMENT_SHADER); glShaderSource(gfs,1,&gouraud_fs,nullptr); glCompileShader(gfs); checkCompile(gfs,"g_fs");
     GLuint gouraudProg = glCreateProgram(); glAttachShader(gouraudProg,gvs); glAttachShader(gouraudProg,gfs); glLinkProgram(gouraudProg); checkLink(gouraudProg);
     glDeleteShader(gvs); glDeleteShader(gfs);
 
-    // compile phong program
+    // Compila programa Phong (iluminação calculada no fragment shader)
     GLuint pvs = glCreateShader(GL_VERTEX_SHADER); glShaderSource(pvs,1,&phong_vs,nullptr); glCompileShader(pvs); checkCompile(pvs,"p_vs");
     GLuint pfs = glCreateShader(GL_FRAGMENT_SHADER); glShaderSource(pfs,1,&phong_fs,nullptr); glCompileShader(pfs); checkCompile(pfs,"p_fs");
     GLuint phongProg = glCreateProgram(); glAttachShader(phongProg,pvs); glAttachShader(phongProg,pfs); glLinkProgram(phongProg); checkLink(phongProg);
     glDeleteShader(pvs); glDeleteShader(pfs);
 
-    // common uniforms
-    glm::vec3 lightPosWorld = glm::vec3(0.0f,0.0f,1.5f); // near front face
+    // Uniforms comuns de iluminação
+    glm::vec3 lightPosWorld = glm::vec3(0.0f,0.0f,1.5f); // próximo à face frontal
     glm::vec3 viewPosWorld = glm::vec3(0.0f,0.0f,3.0f);
     float shininess = 64.0f;
     float kq = 0.01f;
@@ -197,7 +219,7 @@ int main(){
     glm::mat4 view = glm::translate(glm::mat4(1.0f), -viewPosWorld);
     glm::mat4 proj = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 100.0f);
 
-    // set initial uniforms for both programs
+    // Define uniforms iniciais para ambos os programas
     glUseProgram(gouraudProg);
     glUniform3fv(glGetUniformLocation(gouraudProg,"lightPos"),1,glm::value_ptr(lightPosWorld));
     glUniform3fv(glGetUniformLocation(gouraudProg,"viewPos"),1,glm::value_ptr(viewPosWorld));
@@ -214,7 +236,7 @@ int main(){
     glUniformMatrix4fv(glGetUniformLocation(phongProg,"view"),1,GL_FALSE,glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(phongProg,"projection"),1,GL_FALSE,glm::value_ptr(proj));
 
-    std::cout << "Shading: Gouraud\n";
+    std::cout << "Sombreamento: Gouraud\n";
 
     while(!glfwWindowShouldClose(win)){
         if(glfwGetKey(win, GLFW_KEY_ESCAPE)==GLFW_PRESS) glfwSetWindowShouldClose(win, GLFW_TRUE);

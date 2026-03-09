@@ -1,5 +1,22 @@
-// Exercise 21 - Culling
-// Control face culling interactively: 'C' toggles culling, 'F' toggles front-face winding
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
+ * Arquivo: ex21_culling.cpp
+ * Autor(es): Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Controle interativo de Back-Face Culling. Tecla C liga/desliga o
+ * culling; tecla F alterna a direção da face frontal (CCW/CW).
+ * Demonstra como a consistência entre modelagem e glFrontFace afeta
+ * a renderização.
+ *
+ * Créditos:
+ * Baseado nos conceitos e exemplos apresentados nas aulas do
+ * Prof. Rafael Bonfim (DECOM/UFOP).
+ */
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -21,7 +38,7 @@ void main() {
     vColor = aColor;
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 }
- )glsl";
+)glsl";
 
 static const char* fragmentShaderSrc = R"glsl(
 #version 330 core
@@ -32,28 +49,30 @@ void main() {
 }
 )glsl";
 
+// Verifica erros de compilação do shader
 static void checkCompile(GLuint shader, const char* name) {
     GLint success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetShaderInfoLog(shader, 1024, nullptr, info);
-        std::cerr << name << " compile error:\n" << info << std::endl;
+        std::cerr << name << " erro de compilação:\n" << info << std::endl;
     }
 }
+// Verifica erros de linkagem do programa
 static void checkLink(GLuint prog) {
     GLint success;
     glGetProgramiv(prog, GL_LINK_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetProgramInfoLog(prog, 1024, nullptr, info);
-        std::cerr << "Program link error:\n" << info << std::endl;
+        std::cerr << "Erro de linkagem do programa:\n" << info << std::endl;
     }
 }
 
 int main() {
     if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW\n";
+        std::cerr << "Falha ao inicializar GLFW\n";
         return -1;
     }
 
@@ -64,25 +83,25 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercise 21 - Culling", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercício 21 - Culling", nullptr, nullptr);
     if (!window) {
-        std::cerr << "Failed to create GLFW window\n";
+        std::cerr << "Falha ao criar janela GLFW\n";
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize GLAD\n";
+        std::cerr << "Falha ao inicializar GLAD\n";
         glfwDestroyWindow(window);
         glfwTerminate();
         return -1;
     }
 
-    // Depth testing
+    // Teste de profundidade para renderização 3D correta
     glEnable(GL_DEPTH_TEST);
 
-    // Build shaders
+    // Compila e linka o programa de shaders
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertexShaderSrc, nullptr);
     glCompileShader(vs);
@@ -102,9 +121,9 @@ int main() {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    // Cube vertices (position + color) - same as ex06
+    // Vértices do cubo (posição + cor) - mesmo do ex06
     float vertices[] = {
-        // +X face (right) - magenta
+        // Face +X (direita) - magenta
          0.5f, -0.5f,  0.5f,   1.0f, 0.0f, 1.0f,
          0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 1.0f,
          0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 1.0f,
@@ -113,7 +132,7 @@ int main() {
          0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 1.0f,
          0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 1.0f,
 
-        // -X face (left) - cyan
+        // Face -X (esquerda) - ciano
         -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 1.0f,
         -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 1.0f,
@@ -122,7 +141,7 @@ int main() {
         -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 1.0f,
 
-        // +Y face (top) - red
+        // Face +Y (topo) - vermelho
         -0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
          0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
         -0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
@@ -131,7 +150,7 @@ int main() {
          0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
         -0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
 
-        // -Y face (bottom) - green
+        // Face -Y (base) - verde
         -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
          0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
@@ -140,7 +159,7 @@ int main() {
          0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
 
-        // +Z face (front) - blue
+        // Face +Z (frente) - azul
         -0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
          0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
@@ -149,7 +168,7 @@ int main() {
          0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
 
-        // -Z face (back) - yellow
+        // Face -Z (trás) - amarelo
          0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,
          0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f,
@@ -187,20 +206,20 @@ int main() {
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-    // Culling state
+    // Estado do culling
     bool cullingEnabled = false;
     bool frontIsCCW = true;
     int prevC = GLFW_RELEASE;
     int prevF = GLFW_RELEASE;
 
-    // Ensure initial front face mode
+    // Define a direção inicial da face frontal como anti-horária
     glFrontFace(GL_CCW);
 
     while (!glfwWindowShouldClose(window)) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GLFW_TRUE);
 
-        // Key state detection for toggles (on key press)
+        // Detecção de borda de tecla para alternância (toggles)
         int cState = glfwGetKey(window, GLFW_KEY_C);
         if (cState == GLFW_PRESS && prevC == GLFW_RELEASE) {
             cullingEnabled = !cullingEnabled;
@@ -217,7 +236,7 @@ int main() {
         }
         prevF = fState;
 
-        // Update window title with current state
+        // Atualiza o título da janela com o estado atual
         std::string title = "Culling ";
         title += (cullingEnabled ? "ON" : "OFF");
         title += " | Mode: ";

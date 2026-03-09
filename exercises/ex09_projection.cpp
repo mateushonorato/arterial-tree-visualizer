@@ -1,5 +1,21 @@
-// Exercise 09 - Projection toggle (Perspective <-> Orthographic)
-// Uses the cube model from ex06, adds key controls 'P' and 'O' to switch.
+/*
+ * Universidade Federal de Ouro Preto - UFOP
+ * Departamento de Computação - DECOM
+ * Disciplina: BCC327 - Computação Gráfica (2025.2)
+ * Professor: Rafael Bonfim
+ * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
+ * Arquivo: ex09_projection.cpp
+ * Autor(es): Mateus Honorato
+ * Data: Fevereiro/2026
+ * Descrição:
+ * Alternância interativa entre projeção perspectiva e ortográfica
+ * usando as teclas P e O, aplicadas sobre o cubo rotativo do ex06.
+ * Demonstra a diferença visual entre os dois modos de projeção.
+ *
+ * Créditos:
+ * Baseado nos conceitos e exemplos apresentados nas aulas do
+ * Prof. Rafael Bonfim (DECOM/UFOP).
+ */
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -11,14 +27,15 @@
 enum class ProjectionMode { Perspective, Orthographic };
 static ProjectionMode currentMode = ProjectionMode::Perspective;
 
+// Callback de teclado: alterna entre modos de projeção
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action == GLFW_PRESS) {
         if (key == GLFW_KEY_P) {
             currentMode = ProjectionMode::Perspective;
-            std::cout << "Projection: Perspective\n";
+            std::cout << "Projeção: Perspectiva\n";
         } else if (key == GLFW_KEY_O) {
             currentMode = ProjectionMode::Orthographic;
-            std::cout << "Projection: Orthographic\n";
+            std::cout << "Projeção: Ortográfica\n";
         } else if (key == GLFW_KEY_ESCAPE) {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         }
@@ -48,28 +65,30 @@ void main() {
 }
 )glsl";
 
+// Verifica erros de compilação do shader
 static void checkCompile(GLuint shader, const char* name) {
     GLint success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetShaderInfoLog(shader, 1024, nullptr, info);
-        std::cerr << name << " compile error:\n" << info << std::endl;
+        std::cerr << name << " erro de compilação:\n" << info << std::endl;
     }
 }
+// Verifica erros de linkagem do programa
 static void checkLink(GLuint prog) {
     GLint success;
     glGetProgramiv(prog, GL_LINK_STATUS, &success);
     if (!success) {
         char info[1024];
         glGetProgramInfoLog(prog, 1024, nullptr, info);
-        std::cerr << "Program link error:\n" << info << std::endl;
+        std::cerr << "Erro de linkagem do programa:\n" << info << std::endl;
     }
 }
 
 int main() {
     if (!glfwInit()) {
-        std::cerr << "Failed to initialize GLFW\n";
+        std::cerr << "Falha ao inicializar GLFW\n";
         return -1;
     }
 
@@ -80,9 +99,9 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercise 09 - Projection Toggle", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercício 09 - Alternância de Projeção", nullptr, nullptr);
     if (!window) {
-        std::cerr << "Failed to create GLFW window\n";
+        std::cerr << "Falha ao criar janela GLFW\n";
         glfwTerminate();
         return -1;
     }
@@ -90,7 +109,7 @@ int main() {
     glfwSetKeyCallback(window, key_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cerr << "Failed to initialize GLAD\n";
+        std::cerr << "Falha ao inicializar GLAD\n";
         glfwDestroyWindow(window);
         glfwTerminate();
         return -1;
@@ -98,7 +117,7 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
 
-    // Build shaders
+    // Compila e linka o programa de shaders
     GLuint vs = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vs, 1, &vertexShaderSrc, nullptr);
     glCompileShader(vs);
@@ -118,9 +137,9 @@ int main() {
     glDeleteShader(vs);
     glDeleteShader(fs);
 
-    // Cube data (36 vertices): position + color per vertex
+    // Dados do cubo (36 vértices): posição + cor por vértice
     float vertices[] = {
-        // +X face (right) - magenta
+        // Face +X (direita) - magenta
          0.5f, -0.5f,  0.5f,   1.0f, 0.0f, 1.0f,
          0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 1.0f,
          0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 1.0f,
@@ -129,7 +148,7 @@ int main() {
          0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 1.0f,
          0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 1.0f,
 
-        // -X face (left) - cyan
+        // Face -X (esquerda) - ciano
         -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 1.0f,
         -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 1.0f,
@@ -138,7 +157,7 @@ int main() {
         -0.5f,  0.5f,  0.5f,   0.0f, 1.0f, 1.0f,
         -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 1.0f,
 
-        // +Y face (top) - red
+        // Face +Y (topo) - vermelho
         -0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
          0.5f,  0.5f, -0.5f,   1.0f, 0.0f, 0.0f,
         -0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
@@ -147,7 +166,7 @@ int main() {
          0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
         -0.5f,  0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
 
-        // -Y face (bottom) - green
+        // Face -Y (base) - verde
         -0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
          0.5f, -0.5f,  0.5f,   0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
@@ -156,7 +175,7 @@ int main() {
          0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,   0.0f, 1.0f, 0.0f,
 
-        // +Z face (front) - blue
+        // Face +Z (frente) - azul
         -0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
          0.5f, -0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
@@ -165,7 +184,7 @@ int main() {
          0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
         -0.5f,  0.5f,  0.5f,   0.0f, 0.0f, 1.0f,
 
-        // -Z face (back) - yellow
+        // Face -Z (trás) - amarelo
          0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,
         -0.5f, -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,
          0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f,
@@ -200,13 +219,13 @@ int main() {
     glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-    // initial projection = perspective
+    // projeção inicial = perspectiva
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     float aspect = width / (float)height;
     glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
     glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-    std::cout << "Projection: Perspective\n";
+    std::cout << "Projeção: Perspectiva\n";
 
     while (!glfwWindowShouldClose(window)) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -214,7 +233,7 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // update aspect and projection if window resized or mode changed
+        // Recalcula a projeção conforme o modo selecionado e o aspecto da janela
         glfwGetFramebufferSize(window, &width, &height);
         aspect = width / (float)height;
         if (currentMode == ProjectionMode::Perspective) {
