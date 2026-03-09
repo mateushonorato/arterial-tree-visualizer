@@ -127,6 +127,7 @@ int main() {
 
     // Configura VAO/VBO para armazenar a geometria na GPU
     GLuint VAO, VBO;
+    glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 
     glBindVertexArray(VAO);
