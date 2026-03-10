@@ -11,6 +11,10 @@ Este projeto é um renderizador interativo capaz de processar e visualizar a evo
 
 ---
 
+## 📸 Demonstração
+
+---
+
 ## 🗂 Estrutura do Repositório
 
 O repositório está dividido em duas frentes de trabalho:
@@ -64,10 +68,6 @@ Conjuntos de arquivos `.vtk` gerados pelo algoritmo CCO, organizados por dimensi
 
 * `TP1_2D/` — Árvores 2D com 64, 128 e 256 terminais.
 * `TP2_3D/` — Árvores 3D com 128, 256 e 512 terminais.
-
----
-
-## 📸 Demonstração
 
 ---
 
