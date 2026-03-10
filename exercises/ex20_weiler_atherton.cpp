@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex20_weiler_atherton.cpp
- * Autor(es): Mateus Honorato
- * Data: Fevereiro/2026
+ * Exercício Prático: Aula 20 - Recorte de Polígonos - Algoritmo de Weiler–Atherton
  * Descrição:
  * Implementação do algoritmo de recorte de polígonos de Weiler-Atherton.
  * Demonstra as fases de inserção de interseções, classificação

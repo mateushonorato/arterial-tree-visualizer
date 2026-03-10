@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex09_projection.cpp
- * Autor(es): Mateus Honorato
- * Data: Fevereiro/2026
+ * Exercício Prático: Aula 09 - Tipos de Projeção
  * Descrição:
  * Alternância interativa entre projeção perspectiva e ortográfica
  * usando as teclas P e O, aplicadas sobre o cubo rotativo do ex06.

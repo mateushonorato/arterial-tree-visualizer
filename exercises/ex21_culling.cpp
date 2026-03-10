@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex21_culling.cpp
- * Autor(es): Mateus Honorato
- * Data: Fevereiro/2026
+ * Exercício Prático: Aula 21 - Remoção de Superfícies Escondidas
  * Descrição:
  * Controle interativo de Back-Face Culling. Tecla C liga/desliga o
  * culling; tecla F alterna a direção da face frontal (CCW/CW).

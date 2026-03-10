@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex13_phong_specular.cpp
- * Autor(es): Mateus Honorato
- * Data: Fevereiro/2026
+ * Exercício Prático: Aula 13 - Modelo de Sombreamento Phong
  * Descrição:
  * Comparação interativa entre Gouraud Shading (iluminação por
  * vértice) e Phong Shading (iluminação por fragmento), ambos com

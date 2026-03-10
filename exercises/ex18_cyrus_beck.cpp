@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex18_cyrus_beck.cpp
- * Autor(es): Mateus Honorato
- * Data: Fevereiro/2026
+ * Exercício Prático: Aula 18 - Recorte de Segmentos de Retas - Algoritmo Cyrus-Beck
  * Descrição:
  * Recorte interativo de segmentos de reta contra um polígono convexo
  * (hexágono regular) usando o algoritmo de Cyrus-Beck.

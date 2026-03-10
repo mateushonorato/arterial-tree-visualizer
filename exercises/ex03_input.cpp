@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex03_input.cpp
- * Autor(es): Mateus Honorato
- * Data: Fevereiro/2026
+ * Exercício Prático: Aula 03 - Fundamentos de Programação Gráfca
  * Descrição:
  * Demonstração do tratamento de entrada via teclado em OpenGL
  * moderno com GLFW. As teclas R e B alteram a cor de fundo da

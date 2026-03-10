@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex06_cube.cpp
- * Autor(es): Mateus Honorato
- * Data: Fevereiro/2026
+ * Exercício Prático: Aula 06 - Modelagem de Objetos Geométricos Elementares
  * Descrição:
  * Modelagem manual de um cubo 3D (6 faces, 12 triângulos, 36 vértices)
  * com uma cor sólida por face e rotação animada via matrizes GLM.

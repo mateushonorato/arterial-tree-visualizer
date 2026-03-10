@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex04_soma_cores.cpp
- * Autor(es): Mateus Honorato
- * Data: Fevereiro/2026
+* Exercício Prático: Aula 04 - Teoria das Cores e Modelos de Cor
  * Descrição:
  * Demonstração da soma aditiva de cores (Vermelho + Verde = Amarelo)
  * utilizando um uniform vec3 no fragment shader para definir a cor

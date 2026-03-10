@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex10_flashlight.cpp
- * Autor(es): Mateus Honorato
- * Data: Fevereiro/2026
+ * Exercício Prático: Aula 10 - Fontes de Luz
  * Descrição:
  * Simulação de lanterna (spotlight) no espaço de visão (view space).
  * A luz é amarela, com ângulo de corte de 30º, expoente 15 e

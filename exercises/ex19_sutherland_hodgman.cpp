@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex19_sutherland_hodgman.cpp
- * Autor(es): Mateus Honorato
- * Data: Março/2026
+ * Exercício Prático: Aula 19 - Recorte de Polígonos - Algoritmo de Sutherland–Hodgman
  * Descrição:
  * Implementação do algoritmo de recorte de polígonos de Sutherland-Hodgman.
  * Recorta um triângulo contra uma janela retangular iterando sobre as

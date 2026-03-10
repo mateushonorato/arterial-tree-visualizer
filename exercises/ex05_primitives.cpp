@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex05_primitives.cpp
- * Autor(es): Mateus Honorato
- * Data: Fevereiro/2026
+ * Exercício Prático: Aula 05 - Primitivas e Atributos
  * Descrição:
  * Renderização de um quadrado colorido utilizando a primitiva
  * GL_TRIANGLE_STRIP com 4 vértices, demonstrando interpolação

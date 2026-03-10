@@ -3,10 +3,7 @@
  * Departamento de Computação - DECOM
  * Disciplina: BCC327 - Computação Gráfica (2025.2)
  * Professor: Rafael Bonfim
- * Trabalho Prático: Coleção de Exercícios Práticos (Slides 03-21)
- * Arquivo: ex12_vertex_normals.cpp
- * Autor(es): Mateus Honorato
- * Data: Fevereiro/2026
+ * Exercício Prático: Aula 12 - Modelo de Sombreamento Gourand
  * Descrição:
  * Demonstração de sombreamento suave (Gouraud) com normais por vértice.
  * As normais são calculadas pela média das normais das faces adjacentes
