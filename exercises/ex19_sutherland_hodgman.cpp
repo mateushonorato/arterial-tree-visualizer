@@ -16,7 +16,7 @@
  * Implementação do algoritmo de Sutherland-Hodgman conforme
  * fundamentação matemática da disciplina e documentação técnica
  * de Foley & van Dam.
- * Estrutura base de inicialização (GLFW/GLAD) e manipulação 
+ * Estrutura base de inicialização (GLFW/GLAD) e manipulação
  * vetorial/matricial adaptada da biblioteca GLM e do tutorial LearnOpenGL.com.
  */
 
@@ -34,20 +34,20 @@ struct Point
 
 // --- Shaders GLSL 330 Core ---
 
-const char *vertexShaderSrc =
-    "#version 330 core\n"
-    "layout(location = 0) in vec2 aPos;\n"
-    "void main() {\n"
-    "    gl_Position = vec4(aPos, 0.0, 1.0);\n"
-    "}\n";
+static const char *vertexShaderSrc = R"glsl(#version 330 core
+layout(location = 0) in vec2 aPos;
+void main() {
+    gl_Position = vec4(aPos, 0.0, 1.0);
+}
+)glsl";
 
-const char *fragmentShaderSrc =
-    "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "uniform vec3 uColor;\n"
-    "void main() {\n"
-    "    FragColor = vec4(uColor, 1.0);\n"
-    "}\n";
+static const char *fragmentShaderSrc = R"glsl(#version 330 core
+out vec4 FragColor;
+uniform vec3 uColor;
+void main() {
+    FragColor = vec4(uColor, 1.0);
+}
+)glsl";
 
 // --- Funções Auxiliares do Sutherland-Hodgman ---
 
