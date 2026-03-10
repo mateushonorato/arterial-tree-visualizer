@@ -15,8 +15,35 @@ Este projeto é um renderizador interativo capaz de processar e visualizar a evo
 
 O repositório está dividido em duas frentes de trabalho:
 
-1. **Visualizador Principal (`src/` e `include/`):** O projeto final de visualização de estruturas vasculares com interface gráfica.
-2. **Exercícios Práticos (`exercises/`):** Uma coleção de implementações independentes focadas nos algoritmos fundamentais da Computação Gráfica, seguindo especificação dos exercícios contidos nos slides da disciplina. Inclui algoritmos clássicos de recorte (Cohen-Sutherland, Liang-Barsky, Cyrus-Beck, Sutherland-Hodgman e Weiler-Atherton), modelos de sombreamento (Flat, Gouraud, Phong) e remoção de superfícies escondidas (Back-Face Culling).
+### 1. Visualizador Principal (`src/`, `include/`, `shaders/`)
+
+O projeto final de visualização interativa de estruturas vasculares, composto pelos seguintes módulos-chave:
+
+| Módulo | Arquivo | Responsabilidade |
+| --- | --- | --- |
+| **Parser VTK** | `VtkReader.cpp` | Leitura e interpretação de arquivos `.vtk` contendo nós, segmentos e raios das árvores arteriais geradas pelo algoritmo CCO. |
+| **Modelo de Dados** | `ArterialTree.cpp` | Estruturas `ArterialNode` e `ArterialSegment` com normalização automática (bounding box → volume canônico). |
+| **Renderizador** | `TreeRenderer.cpp` | Geração procedural de malhas 3D (cilindros e esferas), wireframe 2D com mapeamento de cores por heat map, e pipeline de buffers VAO/VBO/EBO. |
+| **Shaders GLSL** | `vertex.glsl` / `fragment.glsl` | Implementação dos modelos de iluminação Phong, Gouraud e Flat com suporte a destaque de segmentos selecionados e transparência. |
+| **Câmera Orbital** | `Camera.cpp` | Câmera Arcball com Euler Angles (Yaw/Pitch), suporte a Pan no espaço da tela e controle de Zoom por distância radial. |
+| **Ray Casting (Picking)** | `PickingUtils.cpp` | Seleção 3D de segmentos vasculares via `glm::unProject`, convertendo coordenadas de tela em raios no espaço do mundo para teste de interseção raio-cilindro. |
+| **Recorte Geométrico** | `ClippingUtils.cpp` | Recorte paramétrico de segmentos de reta em 3D utilizando o algoritmo de **Liang-Barsky**, permitindo isolar regiões de interesse da árvore arterial. |
+| **Interface Gráfica** | `MenuController.cpp` | Painel de controle interativo via Dear ImGui com exibição de propriedades geométricas e hemodinâmicas (comprimento, raio, área, volume, resistência) do segmento selecionado. |
+| **Animação** | `AnimationController.cpp` | Controlador de reprodução temporal: carregamento de frames VTK em sequência, playlist de datasets, controle de play/pause e velocidade. |
+| **Contexto de Cena** | `SceneContext.cpp` | Desenho da grade de referência (grid) e do gizmo de orientação dos eixos XYZ. |
+| **Screenshot** | `ScreenshotUtils.cpp` | Captura do framebuffer OpenGL e exportação para PNG via LodePNG. |
+| **Utilitários** | `Shader.cpp` | Compilação, linkagem e gerenciamento de programas GLSL a partir de arquivos em disco. |
+
+### 2. Exercícios Práticos (`exercises/`)
+
+Uma coleção de implementações independentes focadas nos algoritmos fundamentais da Computação Gráfica, seguindo especificação dos exercícios contidos nos slides da disciplina. Inclui algoritmos clássicos de recorte (Cohen-Sutherland, Liang-Barsky, Cyrus-Beck, Sutherland-Hodgman e Weiler-Atherton), modelos de sombreamento (Flat, Gouraud, Phong) e remoção de superfícies escondidas (Back-Face Culling).
+
+### 3. Dados de Simulação (`data/`)
+
+Conjuntos de arquivos `.vtk` gerados pelo algoritmo CCO, organizados por dimensionalidade e número de terminais:
+
+* `TP1_2D/` — Árvores 2D com 64, 128 e 256 terminais.
+* `TP2_3D/` — Árvores 3D com 128, 256 e 512 terminais.
 
 ---
 
@@ -28,19 +55,34 @@ O repositório está dividido em duas frentes de trabalho:
 
 Este visualizador implementa algoritmos geométricos fundamentais "na unha" (sem engines prontas):
 
-### 1. Renderização Avançada (Shaders)
+### 1. Renderização Avançada (Shaders GLSL)
 
-Utilização de **GLSL** customizado para implementar diferentes modelos de iluminação em tempo real:
+Utilização de **GLSL 330 Core** customizado para implementar diferentes modelos de iluminação em tempo real:
 
-* **Phong Shading:** Iluminação per-fragment para acabamento realista.
-* **Gouraud Shading:** Iluminação per-vertex para otimização.
+* **Phong Shading:** Iluminação per-fragment com componentes ambiente, difusa e especular calculadas no Fragment Shader, proporcionando acabamento realista.
+* **Gouraud Shading:** Iluminação per-vertex calculada no Vertex Shader e interpolada via rasterização, priorizando performance.
+* **Flat Shading:** Iluminação por face utilizando normais geométricas reconstruídas via `dFdx`/`dFdy` no Fragment Shader, produzindo aspecto facetado.
 
-### 2. Bibliotecas Utilizadas
+### 2. Câmera e Transformações
 
-* **Matemática Vetorial:** [GLM](https://github.com/g-truc/glm)
-* **Contexto e Janela:** [GLFW](https://www.glfw.org/) + [GLAD](https://glad.dav1d.de/)
-* **Interface de Usuário (GUI):** [Dear ImGui](https://github.com/ocornut/imgui)
-* **Exportação de Imagem:** [LodePNG](https://lodev.org/lodepng/)
+* **Câmera Orbital (Arcball):** Navegação 3D baseada em **Euler Angles (Yaw/Pitch)**, com conversão de coordenadas esféricas para cartesianas, permitindo rotação livre ao redor do modelo.
+* **Pan no Espaço da Tela:** Translação da câmera nos eixos locais (X=Direita, Y=Cima) independente da rotação, via multiplicação de matrizes pela esquerda.
+* **Múltiplas Matrizes de Transformação:** Composição explícita de matrizes **Model** (rotação do modelo 3D), **View** (`glm::lookAt` + pan offset) e **Projection** (alternância entre perspectiva e ortográfica em tempo real).
+
+### 3. Algoritmos Geométricos
+
+* **Ray Casting para Picking 3D:** Seleção interativa de segmentos vasculares via inversão das matrizes MVP (`glm::unProject`), com teste de interseção raio-cilindro.
+* **Recorte de Segmentos (Liang-Barsky 3D):** Recorte paramétrico em caixa delimitadora tri-dimensional para isolar regiões de interesse.
+* **Geração Procedural de Malha:** Construção de cilindros e esferas com cálculo de normais para os modelos de iluminação.
+
+### 4. Bibliotecas Utilizadas
+
+| Biblioteca | Finalidade no Projeto |
+| --- | --- |
+| [GLM](https://github.com/g-truc/glm) | Operações de álgebra linear (vetores, matrizes, transformações) para cálculo das matrizes MVP, normais e `unProject` no sistema de picking. |
+| [GLFW](https://www.glfw.org/) + [GLAD](https://glad.dav1d.de/) | Criação da janela OpenGL 3.3 Core Profile, gerenciamento de contexto e carregamento dinâmico das funções OpenGL modernas. |
+| [Dear ImGui](https://github.com/ocornut/imgui) | Construção do painel de controle interativo (modos de visualização, animação, iluminação, ferramentas de corte) e exibição em tempo real de dados geométricos e hemodinâmicos do segmento selecionado. |
+| [LodePNG](https://lodev.org/lodepng/) | Captura e exportação de screenshots do framebuffer OpenGL diretamente para o formato PNG, sem dependências externas adicionais. |
 
 ---
 
@@ -116,9 +158,19 @@ make
 
 ---
 
-## 📚 Créditos e Autoria
+## 📚 Créditos, Referências Bibliográficas e Tutoriais
 
 **Autor:** Mateus Honorato</br>
 **Instituição:** Universidade Federal de Ouro Preto (UFOP) - Departamento de Computação (DECOM)</br>
-**Disciplina:** BCC327 - Computação Gráfica (2025/2)</br>
-**Professor:** Rafael Bonfim
+**Disciplina:** BCC327 - Computação Gráfica</br>
+
+Os seguintes recursos foram fundamentais para a fundamentação teórica e a implementação deste projeto:
+
+| Referência | Contribuição |
+| --- | --- |
+| **[LearnOpenGL.com](https://learnopengl.com/)** — Joey de Vries | Arquitetura base do OpenGL Moderno (Programmable Pipeline): estrutura de inicialização GLFW/GLAD, classe `Camera` com Euler Angles (Yaw/Pitch), compilação de shaders GLSL, alocação de buffers (VAO/VBO/EBO) e implementação do modelo de iluminação de Phong. |
+| **Foley, J. D. & van Dam, A.** — *Computer Graphics: Principles and Practice* | Fundamentação matemática dos algoritmos de recorte geométrico (Liang-Barsky, Cyrus-Beck, Sutherland-Hodgman, Weiler-Atherton) implementados nos exercícios práticos e no módulo de clipping do visualizador. |
+| **[Dear ImGui](https://github.com/ocornut/imgui)** — Omar Cornut | Biblioteca de interface gráfica imediata utilizada para construção de todo o painel de controle interativo, incluindo os exemplos oficiais que serviram de base para a integração com GLFW/OpenGL3. |
+| **[LodePNG](https://lodev.org/lodepng/)** — Lode Vandevenne | Biblioteca open-source para codificação PNG utilizada no utilitário de captura de screenshots. |
+| **[GLM](https://github.com/g-truc/glm)** — G-Truc Creation | Documentação técnica da biblioteca utilizada como referência para operações vetoriais, matriciais e a função `unProject` no sistema de picking. |
+| **Prof. Rafael Bonfim** — DECOM/UFOP | Conceitos, algoritmos e especificações apresentados nas aulas e slides da disciplina BCC327. |
