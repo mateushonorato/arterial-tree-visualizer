@@ -2,7 +2,6 @@
 
 ![C++](https://img.shields.io/badge/std-C%2B%2B17-blue.svg?style=flat&logo=c%2B%2B)
 ![OpenGL](https://img.shields.io/badge/OpenGL-3.3%20Core-green.svg?style=flat&logo=opengl)
-![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20Windows-lightgrey)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 > **Visualizador 3D de alta performance para estruturas vasculares fisiológicas.**
@@ -12,9 +11,16 @@ Este projeto é um renderizador interativo capaz de processar e visualizar a evo
 
 ---
 
-## 📸 Demonstração
+## 🗂 Estrutura do Repositório
 
-![Demo Principal](docs/demo_main.gif)
+O repositório está dividido em duas frentes de trabalho:
+
+1. **Visualizador Principal (`src/` e `include/`):** O projeto final de visualização de estruturas vasculares com interface gráfica.
+2. **Exercícios Práticos (`exercises/`):** Uma coleção de implementações independentes focadas nos algoritmos fundamentais da Computação Gráfica, seguindo especificação dos exercícios contidos nos slides da disciplina. Inclui algoritmos clássicos de recorte (Cohen-Sutherland, Liang-Barsky, Cyrus-Beck, Sutherland-Hodgman e Weiler-Atherton), modelos de sombreamento (Flat, Gouraud, Phong) e remoção de superfícies escondidas (Back-Face Culling).
+
+---
+
+## 📸 Demonstração
 
 ---
 
@@ -23,79 +29,60 @@ Este projeto é um renderizador interativo capaz de processar e visualizar a evo
 Este visualizador implementa algoritmos geométricos fundamentais "na unha" (sem engines prontas):
 
 ### 1. Renderização Avançada (Shaders)
+
 Utilização de **GLSL** customizado para implementar diferentes modelos de iluminação em tempo real:
+
 * **Phong Shading:** Iluminação per-fragment para acabamento realista.
 * **Gouraud Shading:** Iluminação per-vertex para otimização.
-* **Flat & Wireframe:** Modos de depuração de malha e topologia.
 
-![Comparativo de Shaders](docs/shaders_showcase.png)
+### 2. Bibliotecas Utilizadas
 
-### 2. Algoritmo de Recorte (Liang-Barsky)
-Implementação manual do algoritmo de **Liang-Barsky** para recorte paramétrico de segmentos.
-* **Diferencial:** Ao contrário de técnicas simples de descarte de pixels, este algoritmo recalcula matematicamente os vértices da geometria na CPU, garantindo que a seção transversal dos vasos cortados permaneça visualmente correta.
-
-![Recorte Paramétrico](docs/clipping_algo.png)
-
-### 3. Interação e Ray Casting
-Sistema de seleção de objetos (Picking) via **Ray Casting**.
-* O sistema inverte as matrizes de Projeção e View (`glm::unProject`) para converter o clique 2D do mouse em um raio no espaço 3D.
-* Calcula a interseção analítica Raio-Cilindro para selecionar segmentos com precisão de pixel.
-* **Análise de Dados:** Exibe métricas como Resistência, Volume e Razão L/D do segmento selecionado.
-
-![Interação e UI](docs/picking_ui.png)
-
----
-
-## 🛠️ Stack Tecnológico
-
-O projeto foi construído utilizando bibliotecas padrão da indústria para garantir portabilidade e performance:
-
-* **Linguagem:** C++17
-* **API Gráfica:** OpenGL 3.3 (Core Profile)
-* **Windowing & Input:** [GLFW](https://www.glfw.org/)
-* **Loader de Extensões:** [GLAD](https://glad.dav1d.de/)
-* **Matemática Vetorial:** [GLM (OpenGL Mathematics)](https://github.com/g-truc/glm)
+* **Matemática Vetorial:** [GLM](https://github.com/g-truc/glm)
+* **Contexto e Janela:** [GLFW](https://www.glfw.org/) + [GLAD](https://glad.dav1d.de/)
 * **Interface de Usuário (GUI):** [Dear ImGui](https://github.com/ocornut/imgui)
 * **Exportação de Imagem:** [LodePNG](https://lodev.org/lodepng/)
 
-## 🎮 Controles
+---
+
+## 🎮 Controles do Visualizador
 
 | Entrada | Ação |
-| :--- | :--- |
+| --- | --- |
 | **Mouse Esq.** | Rotacionar Câmera (Arcball) |
 | **Mouse Dir.** | Mover Câmera (Pan) |
 | **Scroll** | Zoom In / Out |
 | **Clique** | Selecionar Segmento |
-| **Teclado [P]** | **Salvar Screenshot (PNG)** |
+| **Teclado [P]** | Salvar Screenshot (PNG) |
 | **Teclado [Espaço]** | Play / Pause Animação |
 
 ---
 
 ## 🔧 Como Compilar
 
-O projeto utiliza **CMake** para gerenciamento de build.
+O projeto utiliza **CMake** para gerenciamento de build. Os exercícios e o projeto principal possuem configurações separadas.
 
 ### Pré-requisitos (Linux)
 
-**Ubuntu/Debian:**
+**Ubuntu / Debian:**
+
 ```bash
 sudo apt install build-essential cmake libglfw3-dev libglm-dev
-
 ```
 
-**Arch Linux:**
+**CachyOS / Arch Linux:**
 
 ```bash
 sudo pacman -S base-devel cmake glfw-wayland glm
-
 ```
 
-### Build (Terminal)
+### Build do Visualizador Principal
+
+É fundamental utilizar a flag `--recursive` durante o clone para garantir que os submódulos (como o Dear ImGui) sejam baixados corretamente.
 
 ```bash
-# 1. Clone o repositório
-git clone [https://github.com/seu-usuario/arterial-tree-vis.git](https://github.com/seu-usuario/arterial-tree-vis.git)
-cd arterial-tree-vis
+# 1. Clone o repositório baixando também os submódulos
+git clone --recursive https://github.com/mateushonorato/arterial-tree-visualizer.git
+cd arterial-tree-visualizer
 
 # 2. Crie a pasta de build
 mkdir build && cd build
@@ -106,14 +93,32 @@ make
 
 # 4. Execute
 ./ArterialVis
+```
 
+### Build dos Exercícios Práticos
+
+Os exercícios da disciplina foram isolados e utilizam um `CMakeLists.txt` próprio localizado na pasta `exercises/`.
+
+```bash
+# 1. Entre no diretório de exercícios
+cd arterial-tree-visualizer/exercises
+
+# 2. Crie a pasta de build local
+mkdir build && cd build
+
+# 3. Configure e Compile
+cmake ..
+make
+
+# 4. Execute o exercício desejado (exemplo: Algoritmo de Weiler-Atherton)
+./ex20_weiler_atherton
 ```
 
 ---
 
 ## 📚 Créditos e Autoria
 
-**Autor:** Mateus Honorato
-</br>**Instituição:** Universidade Federal de Ouro Preto (UFOP)
-
-Este software foi desenvolvido com foco em **boas práticas de engenharia**, utilizando padrões de projeto e estruturas de dados eficientes. Agradecimentos especiais às documentações do [LearnOpenGL](https://learnopengl.com/) e da biblioteca [GLM](https://github.com/g-truc/glm) que serviram de base para a infraestrutura gráfica.
+**Autor:** Mateus Honorato</br>
+**Instituição:** Universidade Federal de Ouro Preto (UFOP) - Departamento de Computação (DECOM)</br>
+**Disciplina:** BCC327 - Computação Gráfica (2025/2)</br>
+**Professor:** Rafael Bonfim
