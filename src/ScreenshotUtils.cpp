@@ -9,6 +9,9 @@
  * Data: Fevereiro/2026
  * Descrição:
  * Implementa utilitário para capturar e salvar screenshots da janela OpenGL.
+ * Créditos:
+ * Gravações de screenshots em formato PNG realizadas através
+ * da biblioteca open-source LodePNG (Lode Vandevenne).
  */
 
 #include <vector>

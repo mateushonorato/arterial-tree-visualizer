@@ -12,7 +12,8 @@
  *
  * Créditos:
  * Baseado em documentação técnica da biblioteca GLM para operações vetoriais
- * e transformações matriciais.
+ * e transformações matriciais. Arquitetura de alocação de
+ * buffers (VAO/VBO/EBO) adaptada dos tutoriais do LearnOpenGL.com.
  */
 
 #include <vector>

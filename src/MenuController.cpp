@@ -9,6 +9,9 @@
  * Data: Fevereiro/2026
  * Descrição:
  * Implementa a interface do menu via ImGui.
+ * Créditos:
+ * Interface dos menus implementada com recursos da biblioteca
+ * Dear ImGui (criada por Omar Cornut).
  */
 
 #include <vector>
@@ -306,7 +309,6 @@ void MenuController::render(AnimationController &animCtrl, ArterialTree &tree, T
         }
         ImGui::End();
     }
-
 
     int selIdx = animCtrl.getSelectedSegment();
     if (selIdx != -1 && selIdx < (int)tree.segments.size())

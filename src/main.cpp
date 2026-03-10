@@ -9,6 +9,10 @@
  * Data: Fevereiro/2026
  * Descrição:
  * Inicialização da aplicação, loop principal e callbacks GLFW.
+ * Créditos:
+ * Estrutura de inicialização da janela (GLFW/GLAD) e integração
+ * da interface gráfica adaptadas dos exemplos de código fornecidos
+ * pela biblioteca Dear ImGui (Omar Cornut) e tutoriais do LearnOpenGL.com.
  */
 
 #include <glad/glad.h>

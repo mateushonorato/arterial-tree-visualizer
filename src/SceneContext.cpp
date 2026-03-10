@@ -9,6 +9,9 @@
  * Data: Fevereiro/2026
  * Descrição:
  * Implementa utilitários para desenhar grade (grid) e gizmo de orientação.
+ * Créditos:
+ * Estrutura de inicialização de shaders e manipulação matricial
+ * adaptadas da biblioteca GLM e dos tutoriais do LearnOpenGL.com.
  */
 
 #include <vector>
@@ -17,8 +20,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "SceneContext.hpp"
 
-static const char *gridVertexShader = R"(
-#version 330 core
+static const char *gridVertexShader = R"(#version 330 core
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aColor;
 uniform mat4 view;
@@ -30,8 +32,7 @@ void main() {
 }
 )";
 
-static const char *gridFragmentShader = R"(
-#version 330 core
+static const char *gridFragmentShader = R"(#version 330 core
 in vec3 vColor;
 out vec4 FragColor;
 void main() {
