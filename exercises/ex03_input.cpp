@@ -9,7 +9,7 @@
  * Data: Fevereiro/2026
  * Descrição:
  * Demonstração do tratamento de entrada via teclado em OpenGL
- * moderno com GLFW. As teclas R e G alteram a cor de fundo da
+ * moderno com GLFW. As teclas R e B alteram a cor de fundo da
  * janela, ilustrando o callback de teclado e o loop de eventos.
  *
  * Créditos:
@@ -21,8 +21,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-// Cor de limpeza do framebuffer (cinza escuro por padrão)
-static float clearColor[3] = {0.2f, 0.2f, 0.2f};
+// Cor de limpeza do framebuffer (azul por padrão)
+static float clearColor[3] = {0.0f, 0.0f, 1.0f};
 
 // Callback de teclado: GLFW invoca esta função sempre que uma tecla é pressionada/solta
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -31,8 +31,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         } else if (key == GLFW_KEY_R) {
             clearColor[0] = 1.0f; clearColor[1] = 0.0f; clearColor[2] = 0.0f; // Vermelho
-        } else if (key == GLFW_KEY_G) {
-            clearColor[0] = 0.2f; clearColor[1] = 0.2f; clearColor[2] = 0.2f; // Cinza escuro
+        } else if (key == GLFW_KEY_B) {
+            clearColor[0] = 0.0f; clearColor[1] = 0.0f; clearColor[2] = 1.0f; // Azul
         }
     }
 }
@@ -46,9 +46,6 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
 
     GLFWwindow* window = glfwCreateWindow(800, 600, "Exercício 03 - Entrada", nullptr, nullptr);
     if (!window) {
