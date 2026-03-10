@@ -25,23 +25,31 @@
 #include <vector>
 #include <iostream>
 
-enum class ShadingMode { Gouraud, Phong };
+enum class ShadingMode
+{
+    Gouraud,
+    Phong
+};
 static ShadingMode shading = ShadingMode::Gouraud;
 
 // Callback de teclado: alterna entre modos de sombreamento
-void key_cb(GLFWwindow* w, int key, int sc, int action, int mods){
-    if(action==GLFW_PRESS){
-        if(key==GLFW_KEY_S){
-            shading = (shading==ShadingMode::Gouraud) ? ShadingMode::Phong : ShadingMode::Gouraud;
-            std::cout << "Sombreamento: " << (shading==ShadingMode::Gouraud?"Gouraud":"Phong") << '\n';
-        } else if(key==GLFW_KEY_ESCAPE){
+void key_cb(GLFWwindow *w, int key, int sc, int action, int mods)
+{
+    if (action == GLFW_PRESS)
+    {
+        if (key == GLFW_KEY_S)
+        {
+            shading = (shading == ShadingMode::Gouraud) ? ShadingMode::Phong : ShadingMode::Gouraud;
+            std::cout << "Sombreamento: " << (shading == ShadingMode::Gouraud ? "Gouraud" : "Phong") << '\n';
+        }
+        else if (key == GLFW_KEY_ESCAPE)
+        {
             glfwSetWindowShouldClose(w, GLFW_TRUE);
         }
     }
 }
 
-static const char* gouraud_vs = R"glsl(
-#version 330 core
+static const char *gouraud_vs = R"glsl(#version 330 core
 layout(location=0) in vec3 aPos;
 layout(location=1) in vec3 aNormal;
 
@@ -83,15 +91,13 @@ void main(){
 }
 )glsl";
 
-static const char* gouraud_fs = R"glsl(
-#version 330 core
+static const char *gouraud_fs = R"glsl(#version 330 core
 in vec3 vColor;
 out vec4 FragColor;
 void main(){ FragColor = vec4(vColor,1.0); }
 )glsl";
 
-static const char* phong_vs = R"glsl(
-#version 330 core
+static const char *phong_vs = R"glsl(#version 330 core
 layout(location=0) in vec3 aPos;
 layout(location=1) in vec3 aNormal;
 
@@ -110,8 +116,7 @@ void main(){
 }
 )glsl";
 
-static const char* phong_fs = R"glsl(
-#version 330 core
+static const char *phong_fs = R"glsl(#version 330 core
 in vec3 FragPos;
 in vec3 Normal;
 out vec4 FragColor;
@@ -144,111 +149,186 @@ void main(){
 )glsl";
 
 // Verifica erros de compilação do shader
-static void checkCompile(GLuint s,const char* name){ GLint ok; glGetShaderiv(s,GL_COMPILE_STATUS,&ok); if(!ok){ char b[1024]; glGetShaderInfoLog(s,1024,nullptr,b); std::cerr<<name<<" shader: "<<b<<"\n"; }}
+static void checkCompile(GLuint s, const char *name)
+{
+    GLint ok;
+    glGetShaderiv(s, GL_COMPILE_STATUS, &ok);
+    if (!ok)
+    {
+        char b[1024];
+        glGetShaderInfoLog(s, 1024, nullptr, b);
+        std::cerr << name << " shader: " << b << "\n";
+    }
+}
 // Verifica erros de linkagem do programa
-static void checkLink(GLuint p){ GLint ok; glGetProgramiv(p,GL_LINK_STATUS,&ok); if(!ok){ char b[1024]; glGetProgramInfoLog(p,1024,nullptr,b); std::cerr<<"linkagem programa: "<<b<<"\n"; }}
+static void checkLink(GLuint p)
+{
+    GLint ok;
+    glGetProgramiv(p, GL_LINK_STATUS, &ok);
+    if (!ok)
+    {
+        char b[1024];
+        glGetProgramInfoLog(p, 1024, nullptr, b);
+        std::cerr << "linkagem programa: " << b << "\n";
+    }
+}
 
-int main(){
-    if(!glfwInit()){ std::cerr<<"Falha ao inicializar GLFW\n"; return -1; }
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE,GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+int main()
+{
+    if (!glfwInit())
+    {
+        std::cerr << "Falha ao inicializar GLFW\n";
+        return -1;
+    }
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* win = glfwCreateWindow(800,600,"Exercício 13 - Especular Phong",nullptr,nullptr);
-    if(!win){ std::cerr<<"Falha ao criar janela\n"; glfwTerminate(); return -1; }
+    GLFWwindow *win = glfwCreateWindow(800, 600, "Exercício 13 - Especular Phong", nullptr, nullptr);
+    if (!win)
+    {
+        std::cerr << "Falha ao criar janela\n";
+        glfwTerminate();
+        return -1;
+    }
     glfwMakeContextCurrent(win);
     glfwSetKeyCallback(win, key_cb);
 
-    if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){ std::cerr<<"Falha ao inicializar GLAD\n"; return -1; }
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cerr << "Falha ao inicializar GLAD\n";
+        return -1;
+    }
 
     glEnable(GL_DEPTH_TEST);
 
     // Cubo indexado (mesmo do ex12)
     std::vector<glm::vec3> pos = {
-        {-0.5f,-0.5f,-0.5f}, {0.5f,-0.5f,-0.5f}, {0.5f,0.5f,-0.5f}, {-0.5f,0.5f,-0.5f},
-        {-0.5f,-0.5f,0.5f},  {0.5f,-0.5f,0.5f},  {0.5f,0.5f,0.5f},  {-0.5f,0.5f,0.5f}
-    };
-    std::vector<unsigned int> idx = { 4,5,6,4,6,7, 1,0,3,1,3,2, 0,4,7,0,7,3, 5,1,2,5,2,6, 3,7,6,3,6,2, 0,1,5,0,5,4 };
+        {-0.5f, -0.5f, -0.5f}, {0.5f, -0.5f, -0.5f}, {0.5f, 0.5f, -0.5f}, {-0.5f, 0.5f, -0.5f}, {-0.5f, -0.5f, 0.5f}, {0.5f, -0.5f, 0.5f}, {0.5f, 0.5f, 0.5f}, {-0.5f, 0.5f, 0.5f}};
+    std::vector<unsigned int> idx = {4, 5, 6, 4, 6, 7, 1, 0, 3, 1, 3, 2, 0, 4, 7, 0, 7, 3, 5, 1, 2, 5, 2, 6, 3, 7, 6, 3, 6, 2, 0, 1, 5, 0, 5, 4};
 
     std::vector<glm::vec3> normals(pos.size(), glm::vec3(0.0f));
-    for(size_t i=0;i<idx.size(); i+=3){
-        glm::vec3 p0 = pos[idx[i+0]];
-        glm::vec3 p1 = pos[idx[i+1]];
-        glm::vec3 p2 = pos[idx[i+2]];
-        glm::vec3 n = glm::normalize(glm::cross(p1-p0,p2-p0));
-        normals[idx[i+0]] += n; normals[idx[i+1]] += n; normals[idx[i+2]] += n;
+    for (size_t i = 0; i < idx.size(); i += 3)
+    {
+        glm::vec3 p0 = pos[idx[i + 0]];
+        glm::vec3 p1 = pos[idx[i + 1]];
+        glm::vec3 p2 = pos[idx[i + 2]];
+        glm::vec3 n = glm::normalize(glm::cross(p1 - p0, p2 - p0));
+        normals[idx[i + 0]] += n;
+        normals[idx[i + 1]] += n;
+        normals[idx[i + 2]] += n;
     }
-    for(auto &n : normals) n = glm::normalize(n);
+    for (auto &n : normals)
+        n = glm::normalize(n);
 
     // Buffer intercalado: posição + normal
     std::vector<float> vbuf;
-    for(size_t i=0;i<pos.size();++i){ vbuf.push_back(pos[i].x); vbuf.push_back(pos[i].y); vbuf.push_back(pos[i].z); vbuf.push_back(normals[i].x); vbuf.push_back(normals[i].y); vbuf.push_back(normals[i].z); }
+    for (size_t i = 0; i < pos.size(); ++i)
+    {
+        vbuf.push_back(pos[i].x);
+        vbuf.push_back(pos[i].y);
+        vbuf.push_back(pos[i].z);
+        vbuf.push_back(normals[i].x);
+        vbuf.push_back(normals[i].y);
+        vbuf.push_back(normals[i].z);
+    }
 
-    GLuint VAO,VBO,EBO; glGenVertexArrays(1,&VAO); glGenBuffers(1,&VBO); glGenBuffers(1,&EBO);
+    GLuint VAO, VBO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
     glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER,VBO); glBufferData(GL_ARRAY_BUFFER,vbuf.size()*sizeof(float),vbuf.data(),GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO); glBufferData(GL_ELEMENT_ARRAY_BUFFER,idx.size()*sizeof(unsigned int),idx.data(),GL_STATIC_DRAW);
-    glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)0); glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,6*sizeof(float),(void*)(3*sizeof(float))); glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vbuf.size() * sizeof(float), vbuf.data(), GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, idx.size() * sizeof(unsigned int), idx.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
     glBindVertexArray(0);
 
     // Compila programa Gouraud (iluminação calculada no vertex shader)
-    GLuint gvs = glCreateShader(GL_VERTEX_SHADER); glShaderSource(gvs,1,&gouraud_vs,nullptr); glCompileShader(gvs); checkCompile(gvs,"g_vs");
-    GLuint gfs = glCreateShader(GL_FRAGMENT_SHADER); glShaderSource(gfs,1,&gouraud_fs,nullptr); glCompileShader(gfs); checkCompile(gfs,"g_fs");
-    GLuint gouraudProg = glCreateProgram(); glAttachShader(gouraudProg,gvs); glAttachShader(gouraudProg,gfs); glLinkProgram(gouraudProg); checkLink(gouraudProg);
-    glDeleteShader(gvs); glDeleteShader(gfs);
+    GLuint gvs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(gvs, 1, &gouraud_vs, nullptr);
+    glCompileShader(gvs);
+    checkCompile(gvs, "g_vs");
+    GLuint gfs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(gfs, 1, &gouraud_fs, nullptr);
+    glCompileShader(gfs);
+    checkCompile(gfs, "g_fs");
+    GLuint gouraudProg = glCreateProgram();
+    glAttachShader(gouraudProg, gvs);
+    glAttachShader(gouraudProg, gfs);
+    glLinkProgram(gouraudProg);
+    checkLink(gouraudProg);
+    glDeleteShader(gvs);
+    glDeleteShader(gfs);
 
     // Compila programa Phong (iluminação calculada no fragment shader)
-    GLuint pvs = glCreateShader(GL_VERTEX_SHADER); glShaderSource(pvs,1,&phong_vs,nullptr); glCompileShader(pvs); checkCompile(pvs,"p_vs");
-    GLuint pfs = glCreateShader(GL_FRAGMENT_SHADER); glShaderSource(pfs,1,&phong_fs,nullptr); glCompileShader(pfs); checkCompile(pfs,"p_fs");
-    GLuint phongProg = glCreateProgram(); glAttachShader(phongProg,pvs); glAttachShader(phongProg,pfs); glLinkProgram(phongProg); checkLink(phongProg);
-    glDeleteShader(pvs); glDeleteShader(pfs);
+    GLuint pvs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(pvs, 1, &phong_vs, nullptr);
+    glCompileShader(pvs);
+    checkCompile(pvs, "p_vs");
+    GLuint pfs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(pfs, 1, &phong_fs, nullptr);
+    glCompileShader(pfs);
+    checkCompile(pfs, "p_fs");
+    GLuint phongProg = glCreateProgram();
+    glAttachShader(phongProg, pvs);
+    glAttachShader(phongProg, pfs);
+    glLinkProgram(phongProg);
+    checkLink(phongProg);
+    glDeleteShader(pvs);
+    glDeleteShader(pfs);
 
     // Uniforms comuns de iluminação
-    glm::vec3 lightPosWorld = glm::vec3(0.0f,0.0f,1.5f); // próximo à face frontal
-    glm::vec3 viewPosWorld = glm::vec3(0.0f,0.0f,3.0f);
+    glm::vec3 lightPosWorld = glm::vec3(0.0f, 0.0f, 1.5f); // próximo à face frontal
+    glm::vec3 viewPosWorld = glm::vec3(0.0f, 0.0f, 3.0f);
     float shininess = 64.0f;
     float kq = 0.01f;
 
     glm::mat4 view = glm::translate(glm::mat4(1.0f), -viewPosWorld);
-    glm::mat4 proj = glm::perspective(glm::radians(45.0f), 800.0f/600.0f, 0.1f, 100.0f);
+    glm::mat4 proj = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
     // Define uniforms iniciais para ambos os programas
     glUseProgram(gouraudProg);
-    glUniform3fv(glGetUniformLocation(gouraudProg,"lightPos"),1,glm::value_ptr(lightPosWorld));
-    glUniform3fv(glGetUniformLocation(gouraudProg,"viewPos"),1,glm::value_ptr(viewPosWorld));
-    glUniform1f(glGetUniformLocation(gouraudProg,"shininess"), shininess);
-    glUniform1f(glGetUniformLocation(gouraudProg,"kq"), kq);
-    glUniformMatrix4fv(glGetUniformLocation(gouraudProg,"view"),1,GL_FALSE,glm::value_ptr(view));
-    glUniformMatrix4fv(glGetUniformLocation(gouraudProg,"projection"),1,GL_FALSE,glm::value_ptr(proj));
+    glUniform3fv(glGetUniformLocation(gouraudProg, "lightPos"), 1, glm::value_ptr(lightPosWorld));
+    glUniform3fv(glGetUniformLocation(gouraudProg, "viewPos"), 1, glm::value_ptr(viewPosWorld));
+    glUniform1f(glGetUniformLocation(gouraudProg, "shininess"), shininess);
+    glUniform1f(glGetUniformLocation(gouraudProg, "kq"), kq);
+    glUniformMatrix4fv(glGetUniformLocation(gouraudProg, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(gouraudProg, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
 
     glUseProgram(phongProg);
-    glUniform3fv(glGetUniformLocation(phongProg,"lightPos"),1,glm::value_ptr(lightPosWorld));
-    glUniform3fv(glGetUniformLocation(phongProg,"viewPos"),1,glm::value_ptr(viewPosWorld));
-    glUniform1f(glGetUniformLocation(phongProg,"shininess"), shininess);
-    glUniform1f(glGetUniformLocation(phongProg,"kq"), kq);
-    glUniformMatrix4fv(glGetUniformLocation(phongProg,"view"),1,GL_FALSE,glm::value_ptr(view));
-    glUniformMatrix4fv(glGetUniformLocation(phongProg,"projection"),1,GL_FALSE,glm::value_ptr(proj));
+    glUniform3fv(glGetUniformLocation(phongProg, "lightPos"), 1, glm::value_ptr(lightPosWorld));
+    glUniform3fv(glGetUniformLocation(phongProg, "viewPos"), 1, glm::value_ptr(viewPosWorld));
+    glUniform1f(glGetUniformLocation(phongProg, "shininess"), shininess);
+    glUniform1f(glGetUniformLocation(phongProg, "kq"), kq);
+    glUniformMatrix4fv(glGetUniformLocation(phongProg, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(phongProg, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
 
     std::cout << "Sombreamento: Gouraud\n";
 
-    while(!glfwWindowShouldClose(win)){
-        if(glfwGetKey(win, GLFW_KEY_ESCAPE)==GLFW_PRESS) glfwSetWindowShouldClose(win, GLFW_TRUE);
+    while (!glfwWindowShouldClose(win))
+    {
+        if (glfwGetKey(win, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+            glfwSetWindowShouldClose(win, GLFW_TRUE);
 
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         float t = (float)glfwGetTime();
-        glm::mat4 model = glm::rotate(glm::mat4(1.0f), t*glm::radians(25.0f), glm::vec3(1.0f,1.0f,0.0f));
+        glm::mat4 model = glm::rotate(glm::mat4(1.0f), t * glm::radians(25.0f), glm::vec3(1.0f, 1.0f, 0.0f));
 
-        if(shading==ShadingMode::Gouraud){
+        if (shading == ShadingMode::Gouraud)
+        {
             glUseProgram(gouraudProg);
-            glUniformMatrix4fv(glGetUniformLocation(gouraudProg,"model"),1,GL_FALSE,glm::value_ptr(model));
-        } else {
+            glUniformMatrix4fv(glGetUniformLocation(gouraudProg, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        }
+        else
+        {
             glUseProgram(phongProg);
-            glUniformMatrix4fv(glGetUniformLocation(phongProg,"model"),1,GL_FALSE,glm::value_ptr(model));
+            glUniformMatrix4fv(glGetUniformLocation(phongProg, "model"), 1, GL_FALSE, glm::value_ptr(model));
         }
 
         glBindVertexArray(VAO);
@@ -258,8 +338,12 @@ int main(){
         glfwPollEvents();
     }
 
-    glDeleteProgram(gouraudProg); glDeleteProgram(phongProg);
-    glDeleteBuffers(1,&VBO); glDeleteBuffers(1,&EBO); glDeleteVertexArrays(1,&VAO);
-    glfwDestroyWindow(win); glfwTerminate();
+    glDeleteProgram(gouraudProg);
+    glDeleteProgram(phongProg);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO);
+    glfwDestroyWindow(win);
+    glfwTerminate();
     return 0;
 }

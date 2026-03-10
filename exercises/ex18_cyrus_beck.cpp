@@ -14,6 +14,8 @@
  * Prof. Rafael Bonfim (DECOM/UFOP).
  * Implementação do algoritmo de Cyrus-Beck conforme fundamentação
  * matemática da disciplina e documentação técnica de Foley & van Dam.
+ * Estrutura base de inicialização (GLFW/GLAD) e manipulação 
+ * vetorial/matricial adaptada da biblioteca GLM e do tutorial LearnOpenGL.com.
  */
 
 #include <glad/glad.h>

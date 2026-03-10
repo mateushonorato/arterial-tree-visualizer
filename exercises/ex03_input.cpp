@@ -12,6 +12,8 @@
  * Créditos:
  * Baseado nos conceitos e exemplos apresentados nas aulas do
  * Prof. Rafael Bonfim (DECOM/UFOP).
+ * Estrutura base de inicialização do GLFW/GLAD e compilação de
+ * shaders (Core Profile 3.3) adaptada do tutorial LearnOpenGL.com.
  */
 
 #include <glad/glad.h>
@@ -22,20 +24,33 @@
 static float clearColor[3] = {0.0f, 0.0f, 1.0f};
 
 // Callback de teclado: GLFW invoca esta função sempre que uma tecla é pressionada/solta
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (action == GLFW_PRESS) {
-        if (key == GLFW_KEY_ESCAPE) {
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    if (action == GLFW_PRESS)
+    {
+        if (key == GLFW_KEY_ESCAPE)
+        {
             glfwSetWindowShouldClose(window, GLFW_TRUE);
-        } else if (key == GLFW_KEY_R) {
-            clearColor[0] = 1.0f; clearColor[1] = 0.0f; clearColor[2] = 0.0f; // Vermelho
-        } else if (key == GLFW_KEY_B) {
-            clearColor[0] = 0.0f; clearColor[1] = 0.0f; clearColor[2] = 1.0f; // Azul
+        }
+        else if (key == GLFW_KEY_R)
+        {
+            clearColor[0] = 1.0f;
+            clearColor[1] = 0.0f;
+            clearColor[2] = 0.0f; // Vermelho
+        }
+        else if (key == GLFW_KEY_B)
+        {
+            clearColor[0] = 0.0f;
+            clearColor[1] = 0.0f;
+            clearColor[2] = 1.0f; // Azul
         }
     }
 }
 
-int main() {
-    if (!glfwInit()) {
+int main()
+{
+    if (!glfwInit())
+    {
         std::cerr << "Falha ao inicializar GLFW\n";
         return -1;
     }
@@ -44,8 +59,9 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercício 03 - Entrada", nullptr, nullptr);
-    if (!window) {
+    GLFWwindow *window = glfwCreateWindow(800, 600, "Exercício 03 - Entrada", nullptr, nullptr);
+    if (!window)
+    {
         std::cerr << "Falha ao criar janela GLFW\n";
         glfwTerminate();
         return -1;
@@ -53,7 +69,8 @@ int main() {
 
     glfwMakeContextCurrent(window);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
         std::cerr << "Falha ao inicializar GLAD\n";
         return -1;
     }
@@ -62,7 +79,8 @@ int main() {
     glfwSetKeyCallback(window, key_callback);
 
     // Loop principal: limpa o framebuffer com a cor atual e processa eventos
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         glViewport(0, 0, 800, 600);
         glClearColor(clearColor[0], clearColor[1], clearColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);

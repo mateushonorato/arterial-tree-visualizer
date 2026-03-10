@@ -12,14 +12,15 @@
  * Créditos:
  * Baseado nos conceitos e exemplos apresentados nas aulas do
  * Prof. Rafael Bonfim (DECOM/UFOP).
+ * Estrutura base de inicialização do GLFW/GLAD e compilação de
+ * shaders (Core Profile 3.3) adaptada do tutorial LearnOpenGL.com.
  */
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-static const char* vertexShaderSrc = R"glsl(
-#version 330 core
+static const char *vertexShaderSrc = R"glsl(#version 330 core
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aColor;
 out vec3 vColor;
@@ -29,8 +30,7 @@ void main() {
 }
 )glsl";
 
-static const char* fragmentShaderSrc = R"glsl(
-#version 330 core
+static const char *fragmentShaderSrc = R"glsl(#version 330 core
 in vec3 vColor;
 out vec4 FragColor;
 void main() {
@@ -39,29 +39,37 @@ void main() {
 )glsl";
 
 // Verifica erros de compilação do shader
-static void checkCompile(GLuint shader, const char* name) {
+static void checkCompile(GLuint shader, const char *name)
+{
     GLint success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success) {
+    if (!success)
+    {
         char info[1024];
         glGetShaderInfoLog(shader, 1024, nullptr, info);
-        std::cerr << name << " erro de compilação:\n" << info << std::endl;
+        std::cerr << name << " erro de compilação:\n"
+                  << info << std::endl;
     }
 }
 
 // Verifica erros de linkagem do programa
-static void checkLink(GLuint prog) {
+static void checkLink(GLuint prog)
+{
     GLint success;
     glGetProgramiv(prog, GL_LINK_STATUS, &success);
-    if (!success) {
+    if (!success)
+    {
         char info[1024];
         glGetProgramInfoLog(prog, 1024, nullptr, info);
-        std::cerr << "Erro de linkagem do programa:\n" << info << std::endl;
+        std::cerr << "Erro de linkagem do programa:\n"
+                  << info << std::endl;
     }
 }
 
-int main() {
-    if (!glfwInit()) {
+int main()
+{
+    if (!glfwInit())
+    {
         std::cerr << "Falha ao inicializar GLFW\n";
         return -1;
     }
@@ -69,19 +77,18 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
 
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Exercício 05 - Primitivas", nullptr, nullptr);
-    if (!window) {
+    GLFWwindow *window = glfwCreateWindow(800, 600, "Exercício 05 - Primitivas", nullptr, nullptr);
+    if (!window)
+    {
         std::cerr << "Falha ao criar janela GLFW\n";
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
         std::cerr << "Falha ao inicializar GLAD\n";
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -116,10 +123,10 @@ int main() {
     // V3: ( 0.5,-0.5)  - Amarelo
     float vertices[] = {
         // posições          // cores
-        -0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // V0
-        -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, // V1
-         0.5f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f, // V2
-         0.5f, -0.5f, 0.0f,  1.0f, 1.0f, 0.0f  // V3
+        -0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,  // V0
+        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // V1
+        0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,   // V2
+        0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f   // V3
     };
 
     // Configura VAO/VBO para armazenar a geometria na GPU
@@ -132,10 +139,10 @@ int main() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // Atributo 0: posição (3 floats)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
     // Atributo 1: cor (3 floats, deslocamento de 12 bytes)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -143,7 +150,8 @@ int main() {
 
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, GLFW_TRUE);
 

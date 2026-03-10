@@ -16,6 +16,8 @@
  * Implementação do algoritmo de Weiler-Atherton conforme
  * fundamentação matemática da disciplina e documentação técnica
  * de Foley & van Dam.
+ * Estrutura base de inicialização (GLFW/GLAD) e manipulação
+ * vetorial/matricial adaptada da biblioteca GLM e do tutorial LearnOpenGL.com.
  */
 
 #include <glad/glad.h>
@@ -31,12 +33,13 @@
 // Vértice aumentado para as listas encadeadas do Weiler-Atherton.
 // Armazena posição, marcadores de interseção/entrada e ponteiro
 // para o vértice correspondente na outra lista (portal de travessia).
-struct Vertex {
+struct Vertex
+{
     glm::vec2 pos;
     bool isIntersection = false;
-    bool entry = false;       // true = Entrada no clipper, false = Saída
+    bool entry = false; // true = Entrada no clipper, false = Saída
     bool visited = false;
-    Vertex* neighbor = nullptr; // Ponteiro para o vértice correspondente na outra lista
+    Vertex *neighbor = nullptr; // Ponteiro para o vértice correspondente na outra lista
 
     Vertex(glm::vec2 p) : pos(p) {}
 };
@@ -44,7 +47,8 @@ struct Vertex {
 using PolygonList = std::list<Vertex>;
 
 // Avança iterador circularmente na std::list (wrap-around ao fim)
-inline PolygonList::iterator circularNext(PolygonList& L, PolygonList::iterator it) {
+inline PolygonList::iterator circularNext(PolygonList &L, PolygonList::iterator it)
+{
     ++it;
     return (it == L.end()) ? L.begin() : it;
 }
@@ -57,12 +61,15 @@ inline PolygonList::iterator circularNext(PolygonList& L, PolygonList::iterator 
 // Os parâmetros t (ao longo AB) e u (ao longo CD) definem I = A + t*(B-A).
 // Retorna true se a interseção for estritamente interior a ambos os segmentos.
 bool getIntersection(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d,
-                     glm::vec2& res, float& t, float& u) {
+                     glm::vec2 &res, float &t, float &u)
+{
     float det = (b.x - a.x) * (d.y - c.y) - (b.y - a.y) * (d.x - c.x);
-    if (std::abs(det) < 1e-6f) return false; // Segmentos (quase) paralelos
+    if (std::abs(det) < 1e-6f)
+        return false; // Segmentos (quase) paralelos
     t = ((c.x - a.x) * (d.y - c.y) - (c.y - a.y) * (d.x - c.x)) / det;
     u = ((c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x)) / det;
-    if (t > 1e-6f && t < 1.0f - 1e-6f && u > 1e-6f && u < 1.0f - 1e-6f) {
+    if (t > 1e-6f && t < 1.0f - 1e-6f && u > 1e-6f && u < 1.0f - 1e-6f)
+    {
         res = a + t * (b - a);
         return true;
     }
@@ -72,12 +79,15 @@ bool getIntersection(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d,
 // Teste ponto-em-polígono via ray casting (contagem de cruzamentos).
 // Lança um raio horizontal para a direita a partir de p e conta quantas
 // arestas do polígono ele cruza. Número ímpar → dentro, par → fora.
-bool isInside(glm::vec2 p, const std::vector<glm::vec2>& poly) {
+bool isInside(glm::vec2 p, const std::vector<glm::vec2> &poly)
+{
     bool inside = false;
-    for (size_t i = 0, j = poly.size() - 1; i < poly.size(); j = i++) {
+    for (size_t i = 0, j = poly.size() - 1; i < poly.size(); j = i++)
+    {
         if (((poly[i].y > p.y) != (poly[j].y > p.y)) &&
             (p.x < (poly[j].x - poly[i].x) * (p.y - poly[i].y) /
-                    (poly[j].y - poly[i].y) + poly[i].x))
+                           (poly[j].y - poly[i].y) +
+                       poly[i].x))
             inside = !inside;
     }
     return inside;
@@ -89,32 +99,38 @@ bool isInside(glm::vec2 p, const std::vector<glm::vec2>& poly) {
 // os vértices de interseção nas posições corretas de cada std::list.
 // Conecta os pares de interseção via ponteiros de memória (neighbor).
 
-struct IsectRecord {
+struct IsectRecord
+{
     glm::vec2 pos;
-    float tS, tC;       // Parâmetros ao longo das arestas do sujeito e clipper
-    int sEdge, cEdge;   // Índices das arestas originais
+    float tS, tC;     // Parâmetros ao longo das arestas do sujeito e clipper
+    int sEdge, cEdge; // Índices das arestas originais
 };
 
 void buildAugmentedLists(
-    const std::vector<glm::vec2>& subject,
-    const std::vector<glm::vec2>& clipper,
-    PolygonList& sList,
-    PolygonList& cList)
+    const std::vector<glm::vec2> &subject,
+    const std::vector<glm::vec2> &clipper,
+    PolygonList &sList,
+    PolygonList &cList)
 {
     int nS = (int)subject.size();
     int nC = (int)clipper.size();
 
     // Popula as listas encadeadas com os vértices originais
-    for (int i = 0; i < nS; i++) sList.push_back(Vertex(subject[i]));
-    for (int i = 0; i < nC; i++) cList.push_back(Vertex(clipper[i]));
+    for (int i = 0; i < nS; i++)
+        sList.push_back(Vertex(subject[i]));
+    for (int i = 0; i < nC; i++)
+        cList.push_back(Vertex(clipper[i]));
 
     // Encontra todas as interseções aresta-a-aresta
     std::vector<IsectRecord> isects;
-    for (int si = 0; si < nS; si++) {
+    for (int si = 0; si < nS; si++)
+    {
         glm::vec2 sA = subject[si], sB = subject[(si + 1) % nS];
-        for (int ci = 0; ci < nC; ci++) {
+        for (int ci = 0; ci < nC; ci++)
+        {
             glm::vec2 cA = clipper[ci], cB = clipper[(ci + 1) % nC];
-            glm::vec2 iPos; float t, u;
+            glm::vec2 iPos;
+            float t, u;
             if (getIntersection(sA, sB, cA, cB, iPos, t, u))
                 isects.push_back({iPos, t, u, si, ci});
         }
@@ -122,23 +138,28 @@ void buildAugmentedLists(
 
     // Agrupa interseções por aresta e ordena pelo parâmetro ao longo dela
     std::vector<std::vector<int>> sEdgeIsects(nS), cEdgeIsects(nC);
-    for (int i = 0; i < (int)isects.size(); i++) {
+    for (int i = 0; i < (int)isects.size(); i++)
+    {
         sEdgeIsects[isects[i].sEdge].push_back(i);
         cEdgeIsects[isects[i].cEdge].push_back(i);
     }
-    for (auto& v : sEdgeIsects)
-        std::sort(v.begin(), v.end(), [&](int a, int b) { return isects[a].tS < isects[b].tS; });
-    for (auto& v : cEdgeIsects)
-        std::sort(v.begin(), v.end(), [&](int a, int b) { return isects[a].tC < isects[b].tC; });
+    for (auto &v : sEdgeIsects)
+        std::sort(v.begin(), v.end(), [&](int a, int b)
+                  { return isects[a].tS < isects[b].tS; });
+    for (auto &v : cEdgeIsects)
+        std::sort(v.begin(), v.end(), [&](int a, int b)
+                  { return isects[a].tC < isects[b].tC; });
 
     // Insere interseções na lista do Sujeito, em ordem ao longo de cada aresta.
     // Armazena ponteiros para os nós inseridos para conectar os portais depois.
-    std::vector<Vertex*> isectSPtr(isects.size()), isectCPtr(isects.size());
+    std::vector<Vertex *> isectSPtr(isects.size()), isectCPtr(isects.size());
     {
         auto it = sList.begin();
-        for (int si = 0; si < nS; si++) {
+        for (int si = 0; si < nS; si++)
+        {
             ++it; // Avança para a posição logo após o vértice original da aresta si
-            for (int iIdx : sEdgeIsects[si]) {
+            for (int iIdx : sEdgeIsects[si])
+            {
                 auto inserted = sList.insert(it, Vertex(isects[iIdx].pos));
                 inserted->isIntersection = true;
                 isectSPtr[iIdx] = &(*inserted);
@@ -149,9 +170,11 @@ void buildAugmentedLists(
     // Insere interseções na lista do Clipper, analogamente
     {
         auto it = cList.begin();
-        for (int ci = 0; ci < nC; ci++) {
+        for (int ci = 0; ci < nC; ci++)
+        {
             ++it;
-            for (int iIdx : cEdgeIsects[ci]) {
+            for (int iIdx : cEdgeIsects[ci])
+            {
                 auto inserted = cList.insert(it, Vertex(isects[iIdx].pos));
                 inserted->isIntersection = true;
                 isectCPtr[iIdx] = &(*inserted);
@@ -160,7 +183,8 @@ void buildAugmentedLists(
     }
 
     // Conecta vizinhos via ponteiros de memória (portais entre as duas listas)
-    for (int i = 0; i < (int)isects.size(); i++) {
+    for (int i = 0; i < (int)isects.size(); i++)
+    {
         isectSPtr[i]->neighbor = isectCPtr[i];
         isectCPtr[i]->neighbor = isectSPtr[i];
     }
@@ -171,15 +195,22 @@ void buildAugmentedLists(
 // original (dentro ou fora do clipper), alterna as interseções entre
 // Entry e Exit. Propriedade garantida para polígonos simples.
 
-void classifyIntersections(PolygonList& sList,
-                           const std::vector<glm::vec2>& clipPoly) {
+void classifyIntersections(PolygonList &sList,
+                           const std::vector<glm::vec2> &clipPoly)
+{
     bool outside = true;
-    for (auto& v : sList)
-        if (!v.isIntersection) { outside = !isInside(v.pos, clipPoly); break; }
+    for (auto &v : sList)
+        if (!v.isIntersection)
+        {
+            outside = !isInside(v.pos, clipPoly);
+            break;
+        }
 
     bool nextIsEntry = outside;
-    for (auto& v : sList) {
-        if (v.isIntersection) {
+    for (auto &v : sList)
+    {
+        if (v.isIntersection)
+        {
             v.entry = nextIsEntry;
             nextIsEntry = !nextIsEntry;
         }
@@ -196,25 +227,28 @@ void classifyIntersections(PolygonList& sList,
 
 // Busca o iterador de um nó na lista a partir do ponteiro de memória.
 // Vantagem do std::list: ponteiros para elementos permanecem estáveis.
-PolygonList::iterator findByPtr(PolygonList& L, Vertex* ptr) {
+PolygonList::iterator findByPtr(PolygonList &L, Vertex *ptr)
+{
     for (auto it = L.begin(); it != L.end(); ++it)
-        if (&(*it) == ptr) return it;
+        if (&(*it) == ptr)
+            return it;
     return L.end();
 }
 
 std::vector<std::vector<glm::vec2>> performTheWalk(
-    PolygonList& sList,
-    PolygonList& cList)
+    PolygonList &sList,
+    PolygonList &cList)
 {
     std::vector<std::vector<glm::vec2>> results;
     int totalSize = (int)sList.size() + (int)cList.size();
 
-    for (auto startIt = sList.begin(); startIt != sList.end(); ++startIt) {
+    for (auto startIt = sList.begin(); startIt != sList.end(); ++startIt)
+    {
         if (!startIt->isIntersection || !startIt->entry || startIt->visited)
             continue;
 
         std::vector<glm::vec2> polygon;
-        Vertex* startPtr = &(*startIt); // Ponteiro para o nó de início
+        Vertex *startPtr = &(*startIt); // Ponteiro para o nó de início
         bool walkingSubject = true;
         int safety = totalSize;
 
@@ -222,15 +256,18 @@ std::vector<std::vector<glm::vec2>> performTheWalk(
         auto sIt = startIt;
         PolygonList::iterator cIt; // Será definido ao pular para C
 
-        while (safety-- > 0) {
-            if (walkingSubject) {
+        while (safety-- > 0)
+        {
+            if (walkingSubject)
+            {
                 // Marca e adiciona o vértice de Entrada atual
                 sIt->visited = true;
                 polygon.push_back(sIt->pos);
                 sIt = circularNext(sList, sIt);
 
                 // Caminha na lista S até a próxima interseção (Saída)
-                while (!sIt->isIntersection && safety-- > 0) {
+                while (!sIt->isIntersection && safety-- > 0)
+                {
                     polygon.push_back(sIt->pos);
                     sIt = circularNext(sList, sIt);
                 }
@@ -238,22 +275,26 @@ std::vector<std::vector<glm::vec2>> performTheWalk(
                 // Interseção de Saída: adiciona e pula para C via ponteiro
                 sIt->visited = true;
                 polygon.push_back(sIt->pos);
-                Vertex* cNeighbor = sIt->neighbor;
+                Vertex *cNeighbor = sIt->neighbor;
                 cIt = findByPtr(cList, cNeighbor);
                 cIt->visited = true;
                 cIt = circularNext(cList, cIt);
                 walkingSubject = false;
-            } else {
+            }
+            else
+            {
                 // Percorre a lista C até a próxima interseção
-                while (!cIt->isIntersection && safety-- > 0) {
+                while (!cIt->isIntersection && safety-- > 0)
+                {
                     polygon.push_back(cIt->pos);
                     cIt = circularNext(cList, cIt);
                 }
 
                 // Interseção em C: verifica se voltamos ao início via ponteiro
                 cIt->visited = true;
-                Vertex* sNeighbor = cIt->neighbor;
-                if (sNeighbor == startPtr) break; // Polígono fechado!
+                Vertex *sNeighbor = cIt->neighbor;
+                if (sNeighbor == startPtr)
+                    break; // Polígono fechado!
 
                 // Salta de volta para S via ponteiro e continua
                 sIt = findByPtr(sList, sNeighbor);
@@ -269,14 +310,14 @@ std::vector<std::vector<glm::vec2>> performTheWalk(
 
 // --- Shaders GLSL 330 Core ---
 
-const char* vertexShaderSrc =
+const char *vertexShaderSrc =
     "#version 330 core\n"
     "layout(location = 0) in vec2 aPos;\n"
     "void main() {\n"
     "    gl_Position = vec4(aPos, 0.0, 1.0);\n"
     "}\n";
 
-const char* fragmentShaderSrc =
+const char *fragmentShaderSrc =
     "#version 330 core\n"
     "out vec4 FragColor;\n"
     "uniform vec3 uColor;\n"
@@ -286,14 +327,19 @@ const char* fragmentShaderSrc =
 
 // --- Programa Principal ---
 
-int main() {
+int main()
+{
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window = glfwCreateWindow(800, 600,
-        "Exercício 20 - Weiler-Atherton (Polígono com Buraco)", NULL, NULL);
-    if (!window) { glfwTerminate(); return -1; }
+    GLFWwindow *window = glfwCreateWindow(800, 600,
+                                          "Exercício 20 - Weiler-Atherton (Polígono com Buraco)", NULL, NULL);
+    if (!window)
+    {
+        glfwTerminate();
+        return -1;
+    }
     glfwMakeContextCurrent(window);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
@@ -312,24 +358,23 @@ int main() {
     // que inverte a orientação local sem cruzar o clipper.
 
     std::vector<glm::vec2> outerPts = {
-        {-0.8f, -0.6f}, {0.8f, -0.6f}, {0.8f, 0.8f}, {-0.8f, 0.8f}
-    };
+        {-0.8f, -0.6f}, {0.8f, -0.6f}, {0.8f, 0.8f}, {-0.8f, 0.8f}};
     std::vector<glm::vec2> holePts = {
-        {-0.3f, 0.3f}, {0.3f, 0.3f}, {0.3f, -0.1f}, {-0.3f, -0.1f}
-    };
+        {-0.3f, 0.3f}, {0.3f, 0.3f}, {0.3f, -0.1f}, {-0.3f, -0.1f}};
 
     // Sujeito completo: externo CCW → ponte → buraco CW → ponte de volta
     std::vector<glm::vec2> sPts = {
-        {-0.8f, -0.6f}, {0.8f, -0.6f}, {0.8f, 0.8f}, {-0.8f, 0.8f},
-        {-0.3f,  0.3f},  // ponte para o buraco
-        {0.3f,  0.3f}, {0.3f, -0.1f}, {-0.3f, -0.1f},  // buraco CW
-        {-0.3f,  0.3f}, {-0.8f, 0.8f}   // ponte de volta
+        {-0.8f, -0.6f}, {0.8f, -0.6f}, {0.8f, 0.8f}, {-0.8f, 0.8f}, {-0.3f, 0.3f}, // ponte para o buraco
+        {0.3f, 0.3f},
+        {0.3f, -0.1f},
+        {-0.3f, -0.1f}, // buraco CW
+        {-0.3f, 0.3f},
+        {-0.8f, 0.8f} // ponte de volta
     };
 
     // Clipper (anti-horário): retângulo deslocado para a direita
     std::vector<glm::vec2> cPts = {
-        {-0.1f, -0.8f}, {0.9f, -0.8f}, {0.9f, 0.5f}, {-0.1f, 0.5f}
-    };
+        {-0.1f, -0.8f}, {0.9f, -0.8f}, {0.9f, 0.5f}, {-0.1f, 0.5f}};
 
     // --- Execução do Algoritmo ---
     PolygonList sList, cList;
@@ -339,34 +384,43 @@ int main() {
 
     // Diagnóstico no terminal
     int numIsects = 0;
-    for (auto& v : sList) if (v.isIntersection) numIsects++;
+    for (auto &v : sList)
+        if (v.isIntersection)
+            numIsects++;
     std::cout << "Interseções encontradas: " << numIsects << std::endl;
-    for (size_t p = 0; p < clippedPolygons.size(); p++) {
+    for (size_t p = 0; p < clippedPolygons.size(); p++)
+    {
         std::cout << "Polígono recortado #" << p << " ("
                   << clippedPolygons[p].size() << " vértices):" << std::endl;
-        for (auto& v : clippedPolygons[p])
+        for (auto &v : clippedPolygons[p])
             std::cout << "  (" << v.x << ", " << v.y << ")" << std::endl;
     }
 
     // --- Configuração OpenGL ---
     GLuint prog = glCreateProgram();
     GLuint vS = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vS, 1, &vertexShaderSrc, NULL); glCompileShader(vS);
+    glShaderSource(vS, 1, &vertexShaderSrc, NULL);
+    glCompileShader(vS);
     GLuint fS = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fS, 1, &fragmentShaderSrc, NULL); glCompileShader(fS);
-    glAttachShader(prog, vS); glAttachShader(prog, fS);
+    glShaderSource(fS, 1, &fragmentShaderSrc, NULL);
+    glCompileShader(fS);
+    glAttachShader(prog, vS);
+    glAttachShader(prog, fS);
     glLinkProgram(prog);
-    glDeleteShader(vS); glDeleteShader(fS);
+    glDeleteShader(vS);
+    glDeleteShader(fS);
 
     GLuint VAO, VBO;
-    glGenVertexArrays(1, &VAO); glGenBuffers(1, &VBO);
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(glm::vec2), (void *)0);
     glEnableVertexAttribArray(0);
 
     // --- Loop de Renderização ---
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(window))
+    {
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         glUseProgram(prog);
@@ -393,7 +447,8 @@ int main() {
         glDrawArrays(GL_LINE_LOOP, 0, (GLsizei)cPts.size());
 
         // Resultado do recorte (amarelo, linha grossa + pontos nos vértices)
-        for (auto& poly : clippedPolygons) {
+        for (auto &poly : clippedPolygons)
+        {
             glLineWidth(4.0f);
             glUniform3f(colorLoc, 1.0f, 0.9f, 0.0f);
             glBufferData(GL_ARRAY_BUFFER, poly.size() * sizeof(glm::vec2),
