@@ -36,7 +36,27 @@ O projeto final de visualização interativa de estruturas vasculares, composto 
 
 ### 2. Exercícios Práticos (`exercises/`)
 
-Uma coleção de implementações independentes focadas nos algoritmos fundamentais da Computação Gráfica, seguindo especificação dos exercícios contidos nos slides da disciplina. Inclui algoritmos clássicos de recorte (Cohen-Sutherland, Liang-Barsky, Cyrus-Beck, Sutherland-Hodgman e Weiler-Atherton), modelos de sombreamento (Flat, Gouraud, Phong) e remoção de superfícies escondidas (Back-Face Culling).
+Uma coleção de implementações independentes focadas nos algoritmos fundamentais da Computação Gráfica, seguindo especificação dos exercícios contidos nos slides da disciplina:
+
+| Exercício | Tópico | Descrição |
+| --- | --- | --- |
+| `ex03_input` | Fundamentos | Tratamento de entrada via teclado (callbacks GLFW). |
+| `ex04_soma_cores` | Teoria das Cores | Soma aditiva de cores RGB com uniforms no Fragment Shader. |
+| `ex04_teoria` | Teoria das Cores | Conversão RGB → CMYK e justificativa do modelo subtrativo. |
+| `ex05_primitives` | Primitivas | Renderização com `GL_TRIANGLE_STRIP` e interpolação de cores. |
+| `ex06_cube` | Modelagem 3D | Cubo com rotação animada via matrizes MVP e depth test. |
+| `ex08_teoria` | Transformações | Parâmetros de `gluLookAt` e ordem de transformações (T→R) para braço robótico. |
+| `ex09_projection` | Projeções | Alternância interativa entre projeção perspectiva e ortográfica. |
+| `ex10_flashlight` | Fontes de Luz | Simulação de spotlight (lanterna) com atenuação quadrática. |
+| `ex11_teoria` | Iluminação | Análise do comportamento de `GL_SMOOTH` (Gouraud) vs. `GL_FLAT` em quinas. |
+| `ex12_vertex_normals` | Gouraud Shading | Sombreamento suave com normais por vértice (média de faces adjacentes). |
+| `ex13_phong_specular` | Phong Shading | Comparação Gouraud vs. Phong com componente especular Blinn-Phong. |
+| `ex13_teoria` | Phong Shading | Discussão sobre artefatos do destaque especular no Gouraud e necessidade do Phong. |
+| `ex18_cyrus_beck` | Recorte de Linhas | Algoritmo de Cyrus-Beck para recorte paramétrico de segmentos. |
+| `ex19_sutherland_hodgman` | Recorte de Polígonos | Algoritmo de Sutherland-Hodgman para recorte de polígonos convexos. |
+| `ex20_weiler_atherton` | Recorte de Polígonos | Algoritmo de Weiler-Atherton com suporte a polígonos côncavos e buracos. |
+| `ex21_culling` | Visibilidade | Remoção de superfícies escondidas via Back-Face Culling. |
+| `ex21_teoria` | Visibilidade | Efeito da inversão de `glFrontFace` (CW vs. CCW) no Back-Face Culling. |
 
 ### 3. Dados de Simulação (`data/`)
 
@@ -169,8 +189,8 @@ Os seguintes recursos foram fundamentais para a fundamentação teórica e a imp
 | Referência | Contribuição |
 | --- | --- |
 | **[LearnOpenGL.com](https://learnopengl.com/)** — Joey de Vries | Arquitetura base do OpenGL Moderno (Programmable Pipeline): estrutura de inicialização GLFW/GLAD, classe `Camera` com Euler Angles (Yaw/Pitch), compilação de shaders GLSL, alocação de buffers (VAO/VBO/EBO) e implementação do modelo de iluminação de Phong. |
-| **Foley, J. D. & van Dam, A.** — *Computer Graphics: Principles and Practice* | Fundamentação matemática dos algoritmos de recorte geométrico (Liang-Barsky, Cyrus-Beck, Sutherland-Hodgman, Weiler-Atherton) implementados nos exercícios práticos e no módulo de clipping do visualizador. |
 | **[Dear ImGui](https://github.com/ocornut/imgui)** — Omar Cornut | Biblioteca de interface gráfica imediata utilizada para construção de todo o painel de controle interativo, incluindo os exemplos oficiais que serviram de base para a integração com GLFW/OpenGL3. |
 | **[LodePNG](https://lodev.org/lodepng/)** — Lode Vandevenne | Biblioteca open-source para codificação PNG utilizada no utilitário de captura de screenshots. |
 | **[GLM](https://github.com/g-truc/glm)** — G-Truc Creation | Documentação técnica da biblioteca utilizada como referência para operações vetoriais, matriciais e a função `unProject` no sistema de picking. |
+| **Foley, J. D. & van Dam, A.** — *Computer Graphics: Principles and Practice* | Fundamentação matemática dos algoritmos de recorte geométrico (Liang-Barsky, Cyrus-Beck, Sutherland-Hodgman, Weiler-Atherton) implementados nos exercícios práticos e no módulo de clipping do visualizador. |
 | **Prof. Rafael Bonfim** — DECOM/UFOP | Conceitos, algoritmos e especificações apresentados nas aulas e slides da disciplina BCC327. |
