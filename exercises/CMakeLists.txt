@@ -60,3 +60,7 @@ target_link_libraries(ex21_culling glfw)
 # Exercício 18
 add_executable(ex18_cyrus_beck ex18_cyrus_beck.cpp ${GLAD_PATH})
 target_link_libraries(ex18_cyrus_beck glfw)
+
+# Exercício 19
+add_executable(ex19_sutherland_hodgman ex19_sutherland_hodgman.cpp ${GLAD_PATH})
+target_link_libraries(ex19_sutherland_hodgman glfw)
